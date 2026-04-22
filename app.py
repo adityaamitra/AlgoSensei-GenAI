@@ -125,12 +125,13 @@ with st.sidebar:
     st.caption("Adaptive DSA Tutor")
     st.divider()
 
-    page = st.radio("", [
-        "🏠 Home",
-        "🎓 Tutor",
-        "📊 Metrics",
-        "🔬 How it works",
-    ], label_visibility="collapsed")
+    # Read jump target set by Home page CTA button
+    default_page = st.session_state.pop("_page_jump", "🏠 Home")
+    page_options = ["🏠 Home", "🎓 Tutor", "📊 Metrics", "🔬 How it works"]
+    default_idx = page_options.index(default_page) if default_page in page_options else 0
+    page = st.radio("", page_options,
+        index=default_idx,
+        label_visibility="collapsed")
 
     st.divider()
 
@@ -171,7 +172,7 @@ if page == "🏠 Home":
     with col1:
         if st.button("🎓 Start Tutoring", type="primary", use_container_width=True):
             st.session_state["_page_jump"] = "🎓 Tutor"
-            st.rerun()
+            st.rerun()  # rerun so sidebar picks up the jump target
 
     st.divider()
 
