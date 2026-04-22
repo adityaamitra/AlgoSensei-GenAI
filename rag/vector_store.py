@@ -69,6 +69,17 @@ def upsert_knowledge_base(
         for i, chunk in enumerate(metadata)
     ]
 
+    # Create payload index on "pattern" field so filtering works
+    from qdrant_client.models import PayloadSchemaType
+    try:
+        client.create_payload_index(
+            collection_name=COLLECTION_NAME,
+            field_name="pattern",
+            field_schema=PayloadSchemaType.KEYWORD,
+        )
+    except Exception:
+        pass  # index may already exist
+
     # Upsert in batches of 100
     batch_size = 100
     for start in range(0, len(points), batch_size):
@@ -101,23 +112,28 @@ def search(
         )
 
     # qdrant-client >=1.7 uses query_points(); older uses search()
-    if hasattr(client, "query_points"):
-        response = client.query_points(
-            collection_name=COLLECTION_NAME,
-            query=query_vector.tolist(),
-            limit=top_k,
-            query_filter=query_filter,
-            with_payload=True,
-        )
-        results = response.points
-    else:
-        results = client.search(
-            collection_name=COLLECTION_NAME,
-            query_vector=query_vector.tolist(),
-            limit=top_k,
-            query_filter=query_filter,
-            with_payload=True,
-        )
+    def _do_search(qfilter):
+        if hasattr(client, "query_points"):
+            return client.query_points(
+                collection_name=COLLECTION_NAME,
+                query=query_vector.tolist(),
+                limit=top_k,
+                query_filter=qfilter,
+                with_payload=True,
+            ).points
+        else:
+            return client.search(
+                collection_name=COLLECTION_NAME,
+                query_vector=query_vector.tolist(),
+                limit=top_k,
+                query_filter=qfilter,
+                with_payload=True,
+            )
+    try:
+        results = _do_search(query_filter)
+    except Exception:
+        # Index not ready yet — fall back to unfiltered search
+        results = _do_search(None)
 
     return [
         {
