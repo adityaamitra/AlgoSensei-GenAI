@@ -1,43 +1,45 @@
 """
-config.py
-──────────
-Central configuration.
-
-Works in two environments:
-  Local:      reads from .env file via python-dotenv
-  HF Spaces:  reads from Spaces secrets (set in Settings → Secrets)
-
-Required secrets:
-  GEMINI_API_KEY   — from aistudio.google.com (free)
-  QDRANT_URL       — from cloud.qdrant.io (free)
-  QDRANT_API_KEY   — from cloud.qdrant.io (free)
+config.py — AlgoSensei configuration
+Works locally (.env file) and on HF Spaces (Secrets).
 """
 
 import os
-
-# Try loading .env for local development; silently skip on HF Spaces
 try:
     from dotenv import load_dotenv
     load_dotenv()
 except ImportError:
     pass
 
-# ── API Keys ──────────────────────────────────────────────────
-GEMINI_API_KEY  = os.environ.get("GEMINI_API_KEY", "")
-QDRANT_URL      = os.environ.get("QDRANT_URL", "")
-QDRANT_API_KEY  = os.environ.get("QDRANT_API_KEY", "")
+# ── OpenRouter (replaces Gemini direct API) ───────────────────
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+
+# Free models available on OpenRouter — change this to switch models:
+#   "google/gemini-2.0-flash-exp:free"     ← best quality, free
+#   "meta-llama/llama-3.3-70b-instruct:free"
+#   "mistralai/mistral-7b-instruct:free"   ← fast, lighter
+OPENROUTER_MODEL   = os.environ.get(
+    "OPENROUTER_MODEL",
+    "google/gemini-2.0-flash-exp:free"
+)
+
+# Keep these for backwards compatibility
+GEMINI_API_KEY      = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_MODEL        = OPENROUTER_MODEL
+GEMINI_VISION_MODEL = OPENROUTER_MODEL
 
 # ── Qdrant ────────────────────────────────────────────────────
+QDRANT_URL      = os.environ.get("QDRANT_URL", "")
+QDRANT_API_KEY  = os.environ.get("QDRANT_API_KEY", "")
 COLLECTION_NAME = "algosensei_knowledge"
 EMBEDDING_DIM   = 384
 TOP_K           = 4
 
-# ── Models ────────────────────────────────────────────────────
-EMBEDDING_MODEL      = "sentence-transformers/all-MiniLM-L6-v2"
-GEMINI_MODEL         = "gemini-2.0-flash"
-GEMINI_VISION_MODEL  = "gemini-2.0-flash"
-MAX_OUTPUT_TOKENS    = 1024
-TEMPERATURE          = 0.3
+# ── Embedding model (local, free) ────────────────────────────
+EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+
+# ── Generation settings ───────────────────────────────────────
+MAX_OUTPUT_TOKENS = 1024
+TEMPERATURE       = 0.3
 
 # ── Hint engine ───────────────────────────────────────────────
 MAX_HINT_LEVELS   = 3
