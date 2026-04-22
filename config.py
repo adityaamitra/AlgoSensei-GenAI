@@ -13,13 +13,13 @@ except ImportError:
 # ── OpenRouter (replaces Gemini direct API) ───────────────────
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 
-# Free models available on OpenRouter — change this to switch models:
-#   "google/gemini-2.0-flash-exp:free"     ← best quality, free
-#   "meta-llama/llama-3.3-70b-instruct:free"
-#   "mistralai/mistral-7b-instruct:free"   ← fast, lighter
+# Models on OpenRouter (free tier available):
+#   "google/gemini-flash-1.5"              ← default, reliable
+#   "meta-llama/llama-3.1-8b-instruct:free"
+#   "mistralai/mistral-7b-instruct:free"
 OPENROUTER_MODEL   = os.environ.get(
     "OPENROUTER_MODEL",
-    "google/gemini-2.0-flash-exp:free"
+    "google/gemini-flash-1.5"
 )
 
 # Keep these for backwards compatibility

@@ -38,13 +38,18 @@ def _headers() -> dict:
 
 def _post(payload: dict) -> dict:
     import urllib.request
+    import urllib.error
     data = json.dumps(payload).encode()
     req  = urllib.request.Request(
         f"{OPENROUTER_BASE_URL}/chat/completions",
         data=data, headers=_headers(), method="POST"
     )
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        return json.loads(resp.read().decode())
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            return json.loads(resp.read().decode())
+    except urllib.error.HTTPError as e:
+        body = e.read().decode()
+        raise RuntimeError(f"OpenRouter {e.code}: {body}") from e
 
 
 def generate_text(prompt: str, system: str = "") -> str:
