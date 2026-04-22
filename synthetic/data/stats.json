@@ -23,5 +23,5 @@
     "dynamic_programming_2d": 5,
     "greedy": 10
   },
-  "output_path": "/home/claude/algosensei_genai/synthetic/data/eval_pairs.jsonl"
+  "output_path": "/Users/mitra/Desktop/algosensei_genai/synthetic/data/eval_pairs.jsonl"
 }

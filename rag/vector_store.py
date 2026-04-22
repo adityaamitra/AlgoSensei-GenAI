@@ -85,14 +85,7 @@ def search(
 ) -> list[dict]:
     """
     Semantic search over the knowledge base.
-
-    Args:
-        query_vector:   384-dim normalized embedding
-        top_k:          number of chunks to return
-        pattern_filter: if set, restrict to this DSA pattern
-
-    Returns:
-        List of dicts with keys: text, pattern, topic, score
+    Compatible with both qdrant-client <1.7 (client.search) and >=1.7 (client.query_points).
     """
     from qdrant_client.models import Filter, FieldCondition, MatchValue
 
@@ -107,13 +100,24 @@ def search(
             )]
         )
 
-    results = client.search(
-        collection_name=COLLECTION_NAME,
-        query_vector=query_vector.tolist(),
-        limit=top_k,
-        query_filter=query_filter,
-        with_payload=True,
-    )
+    # qdrant-client >=1.7 uses query_points(); older uses search()
+    if hasattr(client, "query_points"):
+        response = client.query_points(
+            collection_name=COLLECTION_NAME,
+            query=query_vector.tolist(),
+            limit=top_k,
+            query_filter=query_filter,
+            with_payload=True,
+        )
+        results = response.points
+    else:
+        results = client.search(
+            collection_name=COLLECTION_NAME,
+            query_vector=query_vector.tolist(),
+            limit=top_k,
+            query_filter=query_filter,
+            with_payload=True,
+        )
 
     return [
         {
@@ -131,7 +135,11 @@ def get_collection_stats() -> dict:
     """Return basic stats about the collection."""
     client = get_qdrant_client()
     info = client.get_collection(COLLECTION_NAME)
+    # qdrant-client >=1.7 uses points_count; older versions use vectors_count
+    count = (getattr(info, "points_count", None)
+             or getattr(info, "vectors_count", None)
+             or "unknown")
     return {
-        "vectors_count": info.vectors_count,
+        "vectors_count": count,
         "status":        str(info.status),
     }

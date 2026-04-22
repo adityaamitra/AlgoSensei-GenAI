@@ -1,0 +1,296 @@
+[
+  {
+    "id": "arrays_hashing_concept",
+    "pattern": "arrays_hashing",
+    "topic": "concept",
+    "text": "Arrays and hash maps are the foundation of nearly every efficient algorithm.\nAn array gives O(1) random access by index. A hash map gives O(1) average-case\nlookup, insertion, and deletion by key. Together they let you trade space for time:\ninstead of scanning an array repeatedly (O(n) per scan), you build a hash map once\n(O(n)) and answer future queries in O(1). This is the fundamental space-time tradeoff\nin algorithm design. Source: CLRS Chapter 11 \u2014 Hash Tables."
+  },
+  {
+    "id": "arrays_hashing_intuition",
+    "pattern": "arrays_hashing",
+    "topic": "intuition",
+    "text": "Think of a hash map as a coat check at a restaurant. When you arrive, you hand\nover your coat and receive a ticket number. When you want your coat back, you hand\nover the ticket and get it immediately \u2014 no searching through every coat. The ticket\nnumber is the hash of your key; the coat rack position is the bucket. You traded a\nsmall amount of space (the ticket system) to eliminate the need to search. This is\nexactly what Two Sum does: instead of checking every pair (O(n\u00b2)), you store each\nnumber's complement in a hash map as you scan, retrieving it in O(1) when you find\nthe match. Source: MIT OCW 6.006 Lecture 8."
+  },
+  {
+    "id": "arrays_hashing_mechanics",
+    "pattern": "arrays_hashing",
+    "topic": "mechanics",
+    "text": "Recognize array/hashing problems by these signals: the problem asks about pairs,\ncomplements, duplicates, or frequencies. The brute force is O(n\u00b2) with nested loops.\nThe key insight is always: 'what information do I need to remember from elements I've\nalready seen?' That remembered information goes into a hash map. Canonical setup:\nscan left to right, check if current element's complement/pair is already in the map,\nif not add current element to the map. For frequency problems, use a Counter or\ndefaultdict. For duplicate detection, use a set. Source: Stanford CS161 \u2014 Problem\nSet 1."
+  },
+  {
+    "id": "arrays_hashing_complexity",
+    "pattern": "arrays_hashing",
+    "topic": "complexity",
+    "text": "Hash map operations (insert, lookup, delete) are O(1) average case due to\nhashing, but O(n) worst case due to collisions. In practice with a good hash function\nthe average case holds. Space complexity is O(n) to store at most n entries.\nThe total algorithm is O(n) time, O(n) space \u2014 an improvement over the naive O(n\u00b2)\ntime, O(1) space brute force. This tradeoff (linear space for linear time) is almost\nalways worth it in interview problems. Source: CLRS Section 11.2."
+  },
+  {
+    "id": "arrays_hashing_pitfalls",
+    "pattern": "arrays_hashing",
+    "topic": "pitfalls",
+    "text": "Common mistakes with hash map problems: (1) Adding the current element to the\nmap before checking it \u2014 for Two Sum this causes using the same element twice.\nAlways check first, then add. (2) Confusing set (membership) with dict (key\u2192value).\nUse a set when you only need to know if something exists; use a dict when you need\nto store associated information like an index. (3) Forgetting that hash maps have\nO(n) worst-case due to collision \u2014 mention this in interviews to show awareness.\nSource: CLRS Section 11.4 \u2014 Open Addressing."
+  },
+  {
+    "id": "two_pointers_concept",
+    "pattern": "two_pointers",
+    "topic": "concept",
+    "text": "Two pointers is a technique for reducing nested loops to a single pass by\nmaintaining two indices that move through the array in a coordinated way. When the\narray is sorted (or can be sorted), two pointers can replace O(n\u00b2) brute force with\nO(n) scanning. The pointers typically start at opposite ends and converge, or start\ntogether and expand. The key insight: sorting destroys index information but preserves\nvalue relationships, and many problems only care about values. Source: CLRS Chapter\n2 \u2014 Sorting and Order Statistics."
+  },
+  {
+    "id": "two_pointers_intuition",
+    "pattern": "two_pointers",
+    "topic": "intuition",
+    "text": "Imagine filling a container with water using two walls. The water level is\ndetermined by the shorter wall \u2014 raising the taller wall does nothing; you must raise\nthe shorter wall to potentially increase the volume. This is exactly Container With\nMost Water: move the pointer at the shorter wall inward, because moving the taller\nwall can only decrease or maintain the width while not improving the height. The two\npointers represent competing constraints that need to be balanced. Sort first, then\nthe sorted order tells you which direction to move each pointer. Source: MIT OCW\n6.006 Lecture 3."
+  },
+  {
+    "id": "two_pointers_mechanics",
+    "pattern": "two_pointers",
+    "topic": "mechanics",
+    "text": "Recognize two-pointer problems: sorted array, looking for a pair or triplet\nsatisfying a condition, palindrome checking. Setup: sort if needed, place left=0 and\nright=len-1. Move pointers based on comparison to target: if sum < target, move left\nright (increase sum); if sum > target, move right left (decrease sum). For 3Sum, fix\none element with an outer loop and run two pointers on the rest. Skip duplicates by\nadvancing pointers past repeated values. The pattern eliminates one dimension of\nthe search space per step. Source: Stanford CS161 \u2014 Two-Pointer Technique."
+  },
+  {
+    "id": "two_pointers_complexity",
+    "pattern": "two_pointers",
+    "topic": "complexity",
+    "text": "Two pointers after sorting: O(n log n) for the sort dominates, O(n) for the\nscan. Total: O(n log n) time, O(1) extra space (ignoring sort stack). For 3Sum, the\nouter loop adds one factor of n, giving O(n\u00b2) time. Compare to brute force O(n\u00b3) for\n3Sum \u2014 two pointers provide one order of magnitude improvement. The space\nefficiency (O(1) extra) is the main advantage over hash map approaches for sorted\ninput. Source: CLRS Section 2.3."
+  },
+  {
+    "id": "sliding_window_concept",
+    "pattern": "sliding_window",
+    "topic": "concept",
+    "text": "Sliding window maintains a contiguous subarray (the 'window') that satisfies\nsome condition, expanding the right boundary to add elements and shrinking the left\nboundary to remove elements. Instead of recomputing the property from scratch for\nevery subarray (O(n\u00b2)), the window maintains the property incrementally as it slides,\ngiving O(n). The technique applies when: the problem asks about subarrays or\nsubstrings, the property is monotone (adding elements can only increase or only\nviolate), and the answer involves an optimal contiguous segment. Source: MIT OCW\n6.006 \u2014 Amortized Analysis."
+  },
+  {
+    "id": "sliding_window_intuition",
+    "pattern": "sliding_window",
+    "topic": "intuition",
+    "text": "Think of it as a rubber band stretched across an array. The right end can only\nmove right (expand the window). The left end moves right only when the window\nviolates the constraint. The rubber band snaps to the tightest valid configuration.\nFor 'longest substring without repeating characters': expand right until you see a\nduplicate, then shrink left until the duplicate is gone, tracking the maximum window\nsize throughout. The key realization: you never need to move the right pointer left\nbecause any window ending earlier was already considered. Source: Stanford CS161\nLecture Notes \u2014 Sliding Window."
+  },
+  {
+    "id": "sliding_window_mechanics",
+    "pattern": "sliding_window",
+    "topic": "mechanics",
+    "text": "Two variants: fixed-size window (window size k given) and variable-size window\n(find optimal size). Fixed: maintain a window of exactly k, slide one step at a time,\nadd rightmost and remove leftmost. Variable: expand right always; shrink left when\nconstraint violated. Track answer at each valid state. For character problems, use a\nfrequency hash map inside the window. Key condition for shrinking: when does the\nwindow become invalid? That condition drives the left pointer. window_size - max_freq\n<= k is the famous condition for 'longest repeating character replacement'. Source:\nCLRS Chapter 17 \u2014 Amortized Analysis."
+  },
+  {
+    "id": "sliding_window_pitfalls",
+    "pattern": "sliding_window",
+    "topic": "pitfalls",
+    "text": "Common sliding window mistakes: (1) Moving the left pointer too far \u2014 it should\nonly move until the constraint is restored, not past that point. (2) Forgetting to\nupdate the answer before or after shrinking \u2014 check when to record the maximum.\n(3) Off-by-one errors in window size calculation: right - left + 1 for inclusive indices.\n(4) Confusing when the window is valid vs invalid and inverting the shrink condition.\nDraw the window on paper and trace through 3-4 elements before coding. Source:\nStanford CS161 Problem Sets."
+  },
+  {
+    "id": "stack_concept",
+    "pattern": "stack",
+    "topic": "concept",
+    "text": "A stack is a LIFO (Last In First Out) data structure with O(1) push and pop.\nIn algorithm design, a stack is used when you need to defer processing until a future\ncondition is met \u2014 you push work onto the stack and pop it when the trigger arrives.\nThe monotonic stack variant maintains a stack where elements are always in sorted\norder (monotonically increasing or decreasing), which allows O(n) solutions to\nproblems about 'next greater element' or 'largest rectangle' that would otherwise\nrequire O(n\u00b2) nested loops. Source: CLRS Section 10.1 \u2014 Stacks and Queues."
+  },
+  {
+    "id": "stack_intuition",
+    "pattern": "stack",
+    "topic": "intuition",
+    "text": "Think of a stack of plates. You can only add to or remove from the top. Now\nimagine you're tracking temperatures and you want to know: for each day, how many\ndays until a warmer day? You process days left to right, pushing indices onto a stack.\nWhen today is warmer than the stack's top, you've found the answer for that day \u2014\npop it and record the distance. The stack holds 'unanswered questions': indices of\ndays still waiting for their warmer day. A monotonic stack is just this pattern with the\nconstraint that the values must stay sorted. Source: MIT OCW 6.006 \u2014 Monotonic\nStack."
+  },
+  {
+    "id": "stack_mechanics",
+    "pattern": "stack",
+    "topic": "mechanics",
+    "text": "For parentheses problems: push opening brackets, pop and match on closing.\nFor monotonic stack (daily temperatures, largest rectangle): maintain stack of indices.\nDecreasing monotonic stack: pop when current element is greater than stack top.\nIncreasing monotonic stack: pop when current element is less than stack top. The\npopped element's 'answer' is determined by the element that caused the pop (next\ngreater/smaller) and the element below it on the stack (previous greater/smaller).\nFor histogram rectangle: pop when shorter bar found, calculate area using the\nnew top as left boundary. Source: Stanford CS161 \u2014 Stack-Based Algorithms."
+  },
+  {
+    "id": "binary_search_concept",
+    "pattern": "binary_search",
+    "topic": "concept",
+    "text": "Binary search finds a target in a sorted space in O(log n) by eliminating half\nthe remaining search space at each step. The key insight: if you can determine which\nhalf of the space cannot contain the answer, you can discard it. Binary search applies\nnot just to sorted arrays but to any monotone decision space \u2014 'binary search on the\nanswer' applies when the answer is a value and you can check feasibility in O(n),\ngiving O(n log n) total. The invariant: the answer always lies within [lo, hi].\nSource: CLRS Chapter 2.3 \u2014 Designing Algorithms."
+  },
+  {
+    "id": "binary_search_intuition",
+    "pattern": "binary_search",
+    "topic": "intuition",
+    "text": "Think of guessing a number from 1 to 1000. Guess 500. 'Too high' \u2014 eliminate\nthe top half. Guess 250. 'Too low' \u2014 eliminate the bottom half. You never need more\nthan 10 guesses (log\u2082 1000 \u2248 10). Binary search on the answer works when the\nproblem has a threshold property: for some value X, all values below X fail and all\nvalues above X succeed (or vice versa). For Koko Eating Bananas: can Koko eat all\nbananas at speed k within h hours? For speeds below some threshold: no. Above: yes.\nBinary search finds that threshold in O(log(max_speed)) checks. Source: MIT OCW\n6.006 Lecture 6."
+  },
+  {
+    "id": "binary_search_mechanics",
+    "pattern": "binary_search",
+    "topic": "mechanics",
+    "text": "Template: lo=0, hi=n-1, while lo <= hi: mid = (lo+hi)//2. If target found:\nreturn mid. If target < arr[mid]: hi = mid-1. Else: lo = mid+1. For rotated array:\none half is always sorted \u2014 check which half and binary search accordingly. For\nbinary search on answer: lo=min_possible, hi=max_possible, binary search on\nfeasibility check. For finding leftmost/rightmost occurrence: don't return on match,\ncontinue narrowing. Common bug: integer overflow in mid \u2014 use lo + (hi-lo)//2 in\nlanguages with overflow. Source: CLRS Section 2.3.1."
+  },
+  {
+    "id": "linked_list_concept",
+    "pattern": "linked_list",
+    "topic": "concept",
+    "text": "A linked list is a sequence of nodes where each node stores a value and a pointer\nto the next node. Unlike arrays, linked lists have O(1) insertion and deletion at\nknown positions but O(n) access by index. Most linked list interview problems are\nsolved with pointer manipulation \u2014 changing which node points to which. The two\nkey techniques are: (1) two pointers at different speeds (fast/slow) for cycle detection\nand finding midpoints; (2) reversing a sublist by rewiring pointers in place.\nSource: CLRS Section 10.2 \u2014 Linked Lists."
+  },
+  {
+    "id": "linked_list_intuition",
+    "pattern": "linked_list",
+    "topic": "intuition",
+    "text": "Think of a conga line. To reverse it, each person turns around and grabs the\nshoulders of the person who was behind them. You need three variables: prev (who you\njust processed), curr (who you're processing now), and next (who comes after, saved\nbefore you sever the connection). Floyd's cycle detection: two runners on a circular\ntrack. A slow runner and a fast runner will eventually meet if and only if the track is\ncircular. The fast pointer moves twice as fast \u2014 if there's a cycle, they must meet inside\nit. Source: MIT OCW 6.006 \u2014 Linked List Algorithms."
+  },
+  {
+    "id": "linked_list_mechanics",
+    "pattern": "linked_list",
+    "topic": "mechanics",
+    "text": "Reversal: prev=None, curr=head. While curr: next=curr.next, curr.next=prev,\nprev=curr, curr=next. Return prev. Two-pointer (remove nth from end): place fast n\nsteps ahead, move both until fast hits end, slow is at the node before the target.\nCycle detection (Floyd): fast=slow=head, advance fast by 2 and slow by 1 each step,\nthey meet if cycle exists. Merge sorted lists: use a dummy head node to avoid special\ncasing the first node, always compare and attach the smaller node. Dummy head nodes\neliminate edge cases at list boundaries. Source: CLRS Exercise 10.2."
+  },
+  {
+    "id": "trees_concept",
+    "pattern": "trees",
+    "topic": "concept",
+    "text": "A binary tree is a hierarchical structure where each node has at most two children.\nTree problems almost always use recursion because the tree structure itself is\nrecursive \u2014 a tree is a root node plus two subtrees. The key insight for most tree\nproblems: define what information you need to return from each subtree, then combine\nthose values at the current node. DFS (depth-first search) explores one path to a leaf\nbefore backtracking; BFS (breadth-first search) explores all nodes at depth d before\ndepth d+1. Choose DFS for path problems, BFS for level-order problems.\nSource: CLRS Chapter 12 \u2014 Binary Search Trees."
+  },
+  {
+    "id": "trees_intuition",
+    "pattern": "trees",
+    "topic": "intuition",
+    "text": "Think of the tree as a delegation chain. The root asks: 'what's the answer for\nmy left subtree? What's the answer for my right subtree? Given those answers, what's\nmy own answer?' This is the recursive tree pattern. For maximum path sum: each\nnode asks its children 'what's the best gain I can get from you?' and combines the\nanswers. The global maximum is tracked separately because the best path might pass\nthrough a node without going up to its parent. For diameter: the diameter through any\nnode is left_height + right_height. Postorder traversal (process children before parent)\nis the natural fit for bottom-up aggregation. Source: MIT OCW 6.006 Lecture 19."
+  },
+  {
+    "id": "trees_mechanics",
+    "pattern": "trees",
+    "topic": "mechanics",
+    "text": "DFS preorder (root-left-right): serialization, path problems. Inorder (left-root-right):\nBST traversal gives sorted order. Postorder (left-right-root): height, diameter, deletion.\nBFS: use a queue, process level by level. For BST validation: pass min/max bounds\nthrough recursion, not just parent value. For LCA: if root is between p and q values\n(BST), root is LCA. If both left, recurse left. If both right, recurse right. For construct\nfrom preorder+inorder: preorder[0] is root, find it in inorder to split left and right\nsubtrees. Source: CLRS Section 12.1."
+  },
+  {
+    "id": "tries_concept",
+    "pattern": "tries",
+    "topic": "concept",
+    "text": "A trie (prefix tree) is a tree where each path from root to a node spells out a\nprefix. Each node has up to 26 children (one per letter) and an is_end flag marking\ncomplete words. Tries enable O(L) insertion, search, and prefix search where L is\nthe word length \u2014 independent of the number of stored words. Hash maps give O(L)\nfor exact lookup but O(n\u00b7L) for prefix queries (must scan all words). Tries trade space\n(O(n\u00b7L) nodes) for fast prefix operations. Source: CLRS Problem 12-1 \u2014 Persistent\nData Structures."
+  },
+  {
+    "id": "tries_intuition",
+    "pattern": "tries",
+    "topic": "intuition",
+    "text": "Think of a trie as a filing cabinet organized by letter. All words starting with 'a'\nshare the same first drawer. All words starting with 'ap' share the same sub-drawer.\nYou don't need to check every word \u2014 you navigate the cabinet following the prefix's\npath. If the path doesn't exist, no words have that prefix. If the path exists and ends\nat an is_end node, the word exists. Word Search II uses a trie to search for multiple\nwords simultaneously across a grid \u2014 instead of running DFS for each word separately\n(O(words \u00d7 cells)), one DFS checks all words at once by following the trie.\nSource: MIT OCW 6.006 \u2014 String Algorithms."
+  },
+  {
+    "id": "tries_mechanics",
+    "pattern": "tries",
+    "topic": "mechanics",
+    "text": "TrieNode: children = {} (or array of 26), is_end = False. Insert: for each char,\nif char not in children create new node, move to children[char], set is_end=True at\nend. Search: navigate, return False if any char missing, return is_end at last char.\nStartsWith: same as search but return True regardless of is_end. For wildcard search\n('.'): at a dot, recurse into all children. For Word Search II: build trie from word list,\nrun DFS on grid, move through trie and grid simultaneously, add word to results when\nis_end reached. Mark visited cells during DFS. Source: Stanford CS161 \u2014 Trie\nData Structure."
+  },
+  {
+    "id": "heap_concept",
+    "pattern": "heap_priority_queue",
+    "topic": "concept",
+    "text": "A heap is a complete binary tree satisfying the heap property: every parent is\nsmaller (min-heap) or larger (max-heap) than its children. It supports O(log n) push\nand pop while maintaining the min/max at the root in O(1). Use a heap when you\nrepeatedly need the minimum or maximum from a dynamic collection. Python's heapq\nis a min-heap; negate values for max-heap behavior. Heaps are the right data structure\nfor: k-way merging, finding the kth largest/smallest, streaming medians, and task\nscheduling. Source: CLRS Chapter 6 \u2014 Heapsort."
+  },
+  {
+    "id": "heap_intuition",
+    "pattern": "heap_priority_queue",
+    "topic": "intuition",
+    "text": "Think of a heap as a priority line at a hospital emergency room. The most critical\npatient (highest priority = min value for min-heap) always gets served first, regardless\nof when they arrived. For 'find median from data stream': maintain two heaps \u2014 a\nmax-heap for the lower half and a min-heap for the upper half. Balance them so they\ndiffer by at most one element. The median is either the top of the larger heap or the\naverage of both tops. This gives O(log n) insertion and O(1) median \u2014 much better\nthan sorting every time. Source: MIT OCW 6.006 \u2014 Priority Queues."
+  },
+  {
+    "id": "heap_mechanics",
+    "pattern": "heap_priority_queue",
+    "topic": "mechanics",
+    "text": "K largest elements: maintain a min-heap of size k. For each element, push it;\nif size > k, pop (evicts the smallest, keeping k largest). K closest points: same\npattern with max-heap on distance. Merge k sorted lists: push (value, list_index,\nelement_index) for each list's first element; repeatedly pop min and push the next\nelement from that list. Task scheduler: count frequencies, use max-heap of (negative\ncount, task), simulate cooldown with a queue. For two-heap median: push to max-heap,\nrebalance by moving tops between heaps to maintain size property.\nSource: CLRS Exercise 6.5."
+  },
+  {
+    "id": "backtracking_concept",
+    "pattern": "backtracking",
+    "topic": "concept",
+    "text": "Backtracking is a systematic method for exploring all possible solutions by building\ncandidates incrementally and abandoning (backtracking from) partial candidates as\nsoon as it's determined they cannot lead to a valid solution. It is DFS on an implicit\ndecision tree. At each node, you choose from available options; if a choice leads to\na dead end, you undo it (backtrack) and try the next option. Backtracking applies when:\nyou need all solutions (subsets, permutations, combinations), the search space is\nexponential but can be pruned. Source: CLRS Chapter 35 \u2014 NP-Completeness."
+  },
+  {
+    "id": "backtracking_intuition",
+    "pattern": "backtracking",
+    "topic": "intuition",
+    "text": "Think of solving a maze. At each junction, you pick a direction. If you hit a dead\nend, you trace back to the last junction and try another direction. You never re-explore\na path you've already exhausted. For subsets: at each element, you make a binary\nchoice \u2014 include it or exclude it. For permutations: at each position, try each unused\nelement. The call stack is your 'memory' of decisions made so far. The critical operation\nis the undo step: whatever you add to the current path before the recursive call, you\nremove after. The path variable must be in the same state when the recursive call\nreturns as it was when it was made. Source: MIT OCW 6.046 \u2014 Backtracking."
+  },
+  {
+    "id": "backtracking_mechanics",
+    "pattern": "backtracking",
+    "topic": "mechanics",
+    "text": "Template: def backtrack(start, current_path): if valid complete state: results.append.\nFor each choice from start to end: if pruning condition: continue. make choice (append\nto path). recurse(next_start, current_path). undo choice (pop from path). For subsets:\nrecurse with start+1 to avoid reuse (or start for combinations). For permutations:\nuse a 'used' boolean array. For duplicates (Subsets II): sort first, skip duplicate\nelements at the same recursion level with 'if i > start and nums[i] == nums[i-1]:\ncontinue'. Source: Stanford CS161 \u2014 Combinatorial Search."
+  },
+  {
+    "id": "graphs_concept",
+    "pattern": "graphs",
+    "topic": "concept",
+    "text": "A graph is a set of vertices connected by edges. Graph problems model\nrelationships: islands in a grid, dependencies between tasks, network connections.\nDFS explores as deep as possible before backtracking; BFS explores level by level.\nBFS guarantees shortest path in unweighted graphs because it explores all paths of\nlength k before any path of length k+1. Use a 'visited' set to prevent re-processing.\nGraph problems on grids: treat each cell as a node, its unvisited neighbors as edges.\nSource: CLRS Chapter 22 \u2014 Elementary Graph Algorithms."
+  },
+  {
+    "id": "graphs_intuition",
+    "pattern": "graphs",
+    "topic": "intuition",
+    "text": "Think of graph DFS as exploring a cave system. You pick a tunnel and follow it\nall the way until you hit a dead end or a place you've been before, then backtrack\nand try another tunnel. BFS is like a ripple expanding from a stone dropped in water\n\u2014 all cells at distance 1 are explored before any cell at distance 2. For number of\nislands: DFS from each unvisited '1' cell, marking all connected land cells as visited.\nEach time you start a new DFS from an unvisited '1', you've found a new island.\nSource: MIT OCW 6.006 Lecture 13 \u2014 Graph Search."
+  },
+  {
+    "id": "graphs_mechanics",
+    "pattern": "graphs",
+    "topic": "mechanics",
+    "text": "DFS template: def dfs(node, visited): visited.add(node). for neighbor in\ngraph[node]: if neighbor not in visited: dfs(neighbor, visited). BFS template: queue\n= deque([start]), visited = {start}. While queue: node = popleft(). For neighbor:\nif not visited: visited.add, queue.append. Grid DFS: directions = [(0,1),(0,-1),(1,0),\n(-1,0)]. Check bounds and visited before recursing. For clone graph: map old\u2192new\nnodes in a hash map, DFS building the clone. Cycle detection in directed graph:\nmaintain recursion stack (gray nodes) separate from visited (black nodes).\nSource: CLRS Section 22.3 \u2014 Depth-First Search."
+  },
+  {
+    "id": "dp_1d_concept",
+    "pattern": "dynamic_programming_1d",
+    "topic": "concept",
+    "text": "Dynamic programming solves problems with overlapping subproblems and optimal\nsubstructure by storing subproblem solutions to avoid recomputation. 1D DP uses an\narray dp[] where dp[i] represents the optimal solution for the subproblem ending at\nor considering only elements up to index i. The recurrence relation defines how dp[i]\ndepends on dp[i-1], dp[i-2], etc. Memoization (top-down) stores recursive results;\ntabulation (bottom-up) builds the table iteratively. Both give the same asymptotic\ncomplexity. Source: CLRS Chapter 15 \u2014 Dynamic Programming."
+  },
+  {
+    "id": "dp_1d_intuition",
+    "pattern": "dynamic_programming_1d",
+    "topic": "intuition",
+    "text": "Think of DP as committing to memory: instead of recomputing the same\nsubproblem ten times, you write down the answer the first time and look it up\nthereafter. For climbing stairs: you can reach step n from step n-1 or n-2. So the\nnumber of ways to reach step n equals the number of ways to reach n-1 plus n-2.\nThis is Fibonacci \u2014 but DP makes it O(n) instead of exponential. The key question\nfor any DP problem: 'If I knew the optimal solution for all smaller subproblems, how\nwould I compute the optimal solution for this subproblem?' That question defines the\nrecurrence. Source: MIT OCW 6.006 Lecture 19 \u2014 Dynamic Programming."
+  },
+  {
+    "id": "dp_1d_mechanics",
+    "pattern": "dynamic_programming_1d",
+    "topic": "mechanics",
+    "text": "Coin change: dp[i] = min coins to make amount i = min(dp[i-coin] + 1) for all\ncoins. LIS: dp[i] = longest increasing subsequence ending at i = max(dp[j]+1) for\nj < i where nums[j] < nums[i]. House Robber: dp[i] = max(dp[i-1], dp[i-2]+nums[i]).\nWord Break: dp[i] = True if any dp[j] is True and s[j:i] is in word_dict. Decode Ways:\ndp[i] += dp[i-1] if single digit valid; dp[i] += dp[i-2] if two-digit valid. Space\noptimization: when dp[i] only depends on dp[i-1] and dp[i-2], you can use two\nvariables instead of the full array. Source: CLRS Section 15.1."
+  },
+  {
+    "id": "dp_1d_pitfalls",
+    "pattern": "dynamic_programming_1d",
+    "topic": "pitfalls",
+    "text": "Common 1D DP mistakes: (1) Wrong base case \u2014 dp[0] must be initialized correctly\n(usually 0 or 1 depending on the problem). (2) Wrong recurrence direction \u2014 make\nsure you're building up from smaller subproblems. (3) Off-by-one errors \u2014 does dp[i]\nrepresent 'using the first i elements' or 'ending at index i'? Be explicit. (4) Forgetting\nthat some problems require the full dp array (for reconstruction) while others can\nbe space-optimized to O(1). (5) For problems like House Robber II (circular array),\nrun the 1D DP twice (skip first element, skip last) and take the max.\nSource: CLRS Exercise 15.1."
+  },
+  {
+    "id": "dp_2d_concept",
+    "pattern": "dynamic_programming_2d",
+    "topic": "concept",
+    "text": "2D DP uses a matrix dp[i][j] where the two indices represent two sequences,\ndimensions, or decision axes. Most 2D DP problems involve comparing two strings or\nfilling a grid. Longest Common Subsequence: dp[i][j] = LCS of first i chars of s1\nand first j chars of s2. Edit Distance: dp[i][j] = min operations to convert s1[:i]\nto s2[:j]. Unique Paths: dp[i][j] = paths to cell (i,j). The recurrence connects\ndp[i][j] to dp[i-1][j], dp[i][j-1], and dp[i-1][j-1]. Source: CLRS Section\n15.4 \u2014 Longest Common Subsequence."
+  },
+  {
+    "id": "dp_2d_intuition",
+    "pattern": "dynamic_programming_2d",
+    "topic": "intuition",
+    "text": "Think of 2D DP as filling a grid where each cell's answer depends on its\nneighbors to the left, above, and diagonally above-left. For LCS: if the current\ncharacters match, extend the diagonal (dp[i-1][j-1] + 1). If they don't match,\ntake the better of skipping from either string (max of dp[i-1][j], dp[i][j-1]).\nFor edit distance: if characters match, no operation needed (copy diagonal). If they\ndiffer, take the minimum of insert (left+1), delete (above+1), replace (diagonal+1).\nVisualize the grid being filled row by row, left to right. Source: MIT OCW 6.006\nLecture 20 \u2014 DP on Sequences."
+  },
+  {
+    "id": "dp_2d_mechanics",
+    "pattern": "dynamic_programming_2d",
+    "topic": "mechanics",
+    "text": "LCS: dp = (m+1)\u00d7(n+1) zeros. For i,j: if s1[i-1]==s2[j-1]: dp[i][j]=dp[i-1][j-1]+1\nelse: dp[i][j]=max(dp[i-1][j], dp[i][j-1]). Answer: dp[m][n]. Edit Distance: same\ngrid, if chars match: dp[i-1][j-1], else: 1+min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]).\nUnique Paths: dp[i][j]=dp[i-1][j]+dp[i][j-1], top row and left column all 1s. Space\noptimization: LCS and edit distance can be reduced to O(min(m,n)) space using two\nrows. Regular Expression: handle '.' (match any) and '*' (zero or more of preceding)\nseparately in the recurrence. Source: CLRS Section 15.4."
+  },
+  {
+    "id": "greedy_concept",
+    "pattern": "greedy",
+    "topic": "concept",
+    "text": "A greedy algorithm makes the locally optimal choice at each step with the hope\nof reaching the global optimum. Unlike DP, greedy does not reconsider choices.\nGreedy works when the problem has a 'greedy choice property' \u2014 a local optimal\nchoice leads to a globally optimal solution \u2014 and 'optimal substructure' \u2014 an\noptimal solution contains optimal solutions to subproblems. Greedy is harder to\nprove correct than DP but simpler to implement. Always ask: does making the best\nlocal choice now ever prevent a better global solution? If not, greedy works.\nSource: CLRS Chapter 16 \u2014 Greedy Algorithms."
+  },
+  {
+    "id": "greedy_intuition",
+    "pattern": "greedy",
+    "topic": "intuition",
+    "text": "Think of Jump Game: you're on a road with gas stations. At each station you can\nrefuel (jump forward by up to nums[i]). The greedy insight: at each position, track\nthe farthest you can possibly reach from any position you've already visited. If at\nany position your farthest reachable is less than your current position, you're stuck.\nYou don't need to know the optimal sequence of jumps \u2014 you just need to know\nwhether the farthest reachable frontier ever advances past the end. This local decision\n(track max reach) gives the global answer (can you reach the end). Source: MIT OCW\n6.046 \u2014 Greedy Algorithms."
+  },
+  {
+    "id": "greedy_mechanics",
+    "pattern": "greedy",
+    "topic": "mechanics",
+    "text": "Jump Game: max_reach = 0; for i, v in enumerate(nums): if i > max_reach: return\nFalse; max_reach = max(max_reach, i+v). Jump Game II: track current jump's farthest\nand next jump's farthest, increment jumps when you reach current boundary. Gas\nStation: track total_gain and current_gain; if current_gain < 0, reset start to next\nstation. Merge Intervals: sort by start, merge if current start <= previous end, update\nend to max. Meeting Rooms II: sort by start, use min-heap of end times, pop if earliest\nend <= current start (reuse room), else push new room. Source: CLRS Section 16.2."
+  },
+  {
+    "id": "greedy_pitfalls",
+    "pattern": "greedy",
+    "topic": "pitfalls",
+    "text": "Common greedy mistakes: (1) Applying greedy to a DP problem \u2014 the local optimum\ndoesn't lead to global optimum. Test: can a greedy choice now block a better\nfuture choice? (2) Forgetting to sort before greedy \u2014 most interval and scheduling\nproblems require sorting first. (3) Confusing 'earliest deadline first' with 'shortest\njob first' \u2014 the correct greedy criterion depends on the optimization objective.\n(4) For coin change: greedy (always pick largest coin) only works for canonical coin\nsystems (like US currency). For arbitrary denominations, use DP. Source: CLRS\nSection 16.1 \u2014 An Activity-Selection Problem."
+  },
+  {
+    "id": "pattern_recognition",
+    "pattern": "general",
+    "topic": "recognition",
+    "text": "How to identify which pattern a problem uses: Arrays/Hashing \u2014 pairs, complements,\nduplicates, frequency count, O(n\u00b2) brute force reducible to O(n). Two Pointers \u2014\nsorted array, pairs summing to target, palindrome, partition. Sliding Window \u2014\ncontiguous subarray/substring, optimal length, constraint on window contents.\nStack \u2014 matching brackets, next greater element, monotonic sequences, histogram.\nBinary Search \u2014 sorted input, find threshold, feasibility check. Linked List \u2014 in-place\nmodification, cycle, kth element from end. Trees \u2014 hierarchical data, recursion\nnatural. Tries \u2014 prefix operations, multiple string lookup. Heap \u2014 kth element,\nstreaming data, k-way merge. Backtracking \u2014 enumerate all solutions, exponential\nsearch space with pruning. Graphs \u2014 relationships, connectivity, shortest path.\nDP \u2014 overlapping subproblems, optimization, count of ways. Greedy \u2014 interval\nscheduling, optimization with local choice property. Source: AlgoSensei Knowledge Base."
+  }
+]
