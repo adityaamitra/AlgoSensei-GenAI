@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AlgoSensei — Adaptive DSA Tutor</title>
+<meta name="description" content="Adaptive DSA tutor powered by Gemini + RAG. Socratic hints for Blind 75 problems — never direct answers."/>
+<style>
+:root {
+  --blue:  #1F3B6E; --mid: #2E5FA3; --light: #EBF3FF;
+  --teal:  #0F6E56; --amber: #854F0B;
+  --text:  #1A1A2E; --muted: #555566; --border: #D0D7E3;
+  --gray:  #F5F6F8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  color:var(--text);line-height:1.7;background:#fff}
+
+/* Nav */
+nav{position:sticky;top:0;background:var(--blue);padding:0 2rem;
+  display:flex;align-items:center;justify-content:space-between;
+  height:58px;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.nav-brand{color:#fff;font-size:1.2rem;font-weight:700;text-decoration:none;letter-spacing:-.01em}
+.nav-links a{color:#93C5FD;text-decoration:none;margin-left:1.5rem;font-size:.9rem;transition:color .15s}
+.nav-links a:hover{color:#fff}
+.nav-cta{background:#fff;color:var(--blue);padding:6px 18px;border-radius:20px;
+  font-weight:700;font-size:.85rem;text-decoration:none;margin-left:1.5rem;transition:opacity .2s}
+.nav-cta:hover{opacity:.85}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,var(--blue) 0%,#2E5FA3 60%,#3B6FBF 100%);
+  color:#fff;text-align:center;padding:6rem 2rem 5rem}
+.hero h1{font-size:3.2rem;font-weight:800;letter-spacing:-.02em;margin-bottom:.4rem}
+.hero .sub{font-size:1.2rem;color:#93C5FD;margin-bottom:1rem}
+.hero p{max-width:660px;margin:0 auto 2.5rem;color:#CBD5E1;font-size:1.02rem;line-height:1.8}
+.btn-w{display:inline-block;background:#fff;color:var(--blue);
+  padding:.85rem 2.2rem;border-radius:10px;font-weight:700;text-decoration:none;
+  margin:.4rem;font-size:1rem;transition:all .2s;box-shadow:0 4px 14px rgba(0,0,0,.15)}
+.btn-w:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.2)}
+.btn-o{display:inline-block;border:2px solid rgba(255,255,255,.6);color:#fff;
+  padding:.83rem 2.2rem;border-radius:10px;font-weight:700;text-decoration:none;
+  margin:.4rem;font-size:1rem;transition:all .2s}
+.btn-o:hover{background:rgba(255,255,255,.12);border-color:#fff}
+.badge-row{margin-top:2rem;display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap}
+.badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+  color:#E2E8F0;border-radius:20px;padding:4px 14px;font-size:.8rem}
+
+/* Demo embed */
+.demo-section{background:var(--gray);padding:4rem 2rem}
+.demo-section .container{max-width:960px;margin:0 auto}
+.demo-frame{width:100%;height:700px;border:none;border-radius:14px;
+  box-shadow:0 8px 40px rgba(0,0,0,.12);background:#fff}
+.demo-placeholder{
+  width:100%;height:700px;border-radius:14px;
+  background:var(--blue);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:#fff;text-align:center;padding:2rem;gap:1.5rem
+}
+.demo-placeholder h3{font-size:1.5rem}
+.demo-placeholder p{color:#93C5FD;max-width:460px}
+
+/* Section */
+section{padding:4rem 2rem}
+.container{max-width:920px;margin:0 auto}
+h2{font-size:1.75rem;color:var(--blue);margin-bottom:.4rem}
+.sub{color:var(--muted);margin-bottom:2.5rem;font-size:1rem}
+
+/* Problem */
+.problem-bg{background:var(--gray)}
+blockquote{border-left:4px solid var(--mid);padding:1rem 1.5rem;
+  background:#fff;border-radius:0 8px 8px 0;margin:1.5rem 0;
+  font-style:italic;color:var(--muted);font-size:1.05rem}
+
+/* Cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.25rem}
+.card{background:#fff;border:1px solid var(--border);border-radius:14px;
+  padding:1.5rem;transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-3px);box-shadow:0 6px 24px rgba(0,0,0,.08)}
+.card-icon{font-size:1.8rem;margin-bottom:.75rem}
+.card h3{font-size:1rem;font-weight:600;margin-bottom:.4rem;color:var(--blue)}
+.card p{font-size:.88rem;color:var(--muted);line-height:1.6}
+.card .chip{display:inline-block;margin-top:.75rem;background:var(--light);
+  color:var(--mid);font-size:.72rem;font-weight:600;padding:2px 10px;border-radius:10px}
+
+/* Flow */
+.flow{display:flex;flex-direction:column;gap:0}
+.step{display:flex;align-items:flex-start;gap:1.25rem;padding:1.2rem 0;
+  border-bottom:1px solid var(--border)}
+.step:last-child{border-bottom:none}
+.step-n{min-width:36px;height:36px;background:var(--blue);color:#fff;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:.9rem;flex-shrink:0;margin-top:2px}
+.step h4{font-size:.95rem;font-weight:600;margin-bottom:.15rem}
+.step p{font-size:.87rem;color:var(--muted)}
+
+/* Hint example */
+.hint-card{background:#fff;border:1px solid var(--border);
+  border-left:4px solid var(--mid);border-radius:0 12px 12px 0;
+  padding:1.25rem 1.5rem;margin:1.5rem 0}
+.hint-meta{font-size:.75rem;color:var(--muted);margin-bottom:.5rem}
+.hint-meta .safe{background:#DCFCE7;color:#166534;padding:2px 8px;
+  border-radius:8px;font-weight:600}
+.hint-text{font-size:.97rem;line-height:1.7}
+.listen-btn{display:inline-block;margin-top:.65rem;
+  border:1px solid var(--mid);color:var(--mid);background:transparent;
+  border-radius:7px;padding:4px 14px;font-size:.8rem;cursor:pointer;transition:all .15s}
+.listen-btn:hover{background:var(--light)}
+
+/* Metrics */
+.metrics-bg{background:var(--blue);color:#fff}
+.metrics-bg h2{color:#fff}
+.metrics-bg .sub{color:#93C5FD}
+.m-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem}
+.m-card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+  border-radius:12px;padding:1.5rem;text-align:center}
+.m-val{font-size:2.2rem;font-weight:800;color:#fff}
+.m-lbl{font-size:.8rem;color:#93C5FD;margin-top:.25rem}
+.m-tgt{font-size:.72rem;color:#64748B;margin-top:.15rem}
+
+/* Stack pills */
+.pills{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1.2rem}
+.pill{background:var(--light);color:var(--blue);border:1px solid #B5D4F4;
+  border-radius:20px;padding:4px 14px;font-size:.82rem;font-weight:500}
+.free{display:inline-block;background:#DCFCE7;color:#166534;
+  border-radius:10px;padding:2px 10px;font-size:.78rem;font-weight:600;margin-left:.5rem}
+
+/* Setup code */
+.code-block{background:#0F172A;color:#E2E8F0;padding:1.5rem;border-radius:12px;
+  font-family:'Courier New',monospace;font-size:.84rem;line-height:1.8;overflow-x:auto;white-space:pre}
+
+footer{background:var(--blue);color:#93C5FD;text-align:center;padding:2rem;font-size:.85rem}
+footer a{color:#fff}
+
+@media(max-width:600px){
+  .hero h1{font-size:2rem}
+  nav .nav-links{display:none}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="#">🧠 AlgoSensei</a>
+  <div class="nav-links">
+    <a href="#problem">Problem</a>
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="#metrics">Metrics</a>
+    <a href="#setup">Setup</a>
+    <a href="https://github.com/adityaamitra/AlgoSensei" target="_blank">GitHub</a>
+    <a class="nav-cta" href="https://huggingface.co/spaces/adityaamitra/AlgoSensei" target="_blank">Try Live Demo →</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <h1>AlgoSensei</h1>
+  <p class="sub">Adaptive DSA Tutor · Socratic hints, never direct answers</p>
+  <p>
+    Stuck on a Blind 75 problem at 11 PM? AlgoSensei gives you calibrated hints
+    that guide you toward the insight — without robbing you of the discovery moment.
+    Powered by Gemini 1.5 Flash and a RAG knowledge base grounded in CLRS + MIT OCW.
+  </p>
+  <a href="https://huggingface.co/spaces/adityaamitra/AlgoSensei" class="btn-w" target="_blank">🚀 Try Live Demo</a>
+  <a href="https://github.com/adityaamitra/AlgoSensei" class="btn-o" target="_blank">View Source</a>
+  <div class="badge-row">
+    <span class="badge">Gemini 1.5 Flash</span>
+    <span class="badge">Qdrant RAG</span>
+    <span class="badge">14 DSA Patterns</span>
+    <span class="badge">Vision + Audio</span>
+    <span class="badge">$0 cost</span>
+  </div>
+</div>
+
+<!-- Live Demo Embed -->
+<div class="demo-section" id="demo">
+<div class="container">
+  <h2 style="text-align:center;margin-bottom:.5rem">Live Demo</h2>
+  <p style="text-align:center;color:var(--muted);margin-bottom:1.5rem">
+    Fully interactive — type a problem, upload a screenshot, or ask for a concept explanation.
+  </p>
+  <!-- Swap the placeholder div below with an iframe once deployed to HF Spaces:
+       <iframe src="https://adityaamitra-algosensei.hf.space" class="demo-frame" allow="microphone"></iframe>
+  -->
+  <div class="demo-placeholder">
+    <div style="font-size:3rem">🧠</div>
+    <h3>Live App on Hugging Face Spaces</h3>
+    <p>Click the button below to open the fully interactive AlgoSensei tutor.</p>
+    <a href="https://huggingface.co/spaces/adityaamitra/AlgoSensei" target="_blank"
+       style="background:#fff;color:var(--blue);padding:.75rem 2rem;border-radius:10px;
+              font-weight:700;text-decoration:none;font-size:1rem;">
+      🚀 Open AlgoSensei
+    </a>
+    <p style="font-size:.8rem;color:#64748B">
+      Free to use · No account required · Runs on Gemini 1.5 Flash free tier
+    </p>
+  </div>
+</div>
+</div>
+
+<!-- Problem -->
+<section class="problem-bg" id="problem">
+<div class="container">
+  <h2>The Problem</h2>
+  <p class="sub">Every CS student preparing for technical interviews has lived this moment.</p>
+  <blockquote>
+    "It's 11 PM. You've been staring at the same LeetCode problem for 45 minutes.
+    You have two options: keep suffering with zero progress, or look up the solution,
+    skim it, tell yourself you understand it, and move on. Sound familiar?"
+  </blockquote>
+  <p>
+    Existing tools optimize for making you <em>feel</em> helped — not for making you
+    <em>actually learn</em>. ChatGPT gives you a near-complete solution dressed up as a hint.
+    Editorial solutions hand you the answer wholesale.
+  </p>
+  <p style="margin-top:1rem">
+    The gap between <em>"I'm stuck"</em> and <em>"I looked up the answer"</em> is where
+    real understanding either forms or doesn't. AlgoSensei lives in that gap.
+  </p>
+</div>
+</section>
+
+<!-- Features -->
+<section id="features">
+<div class="container">
+  <h2>Four Generative AI Components</h2>
+  <p class="sub">Each component solves a specific problem in the tutoring pipeline.</p>
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">📚</div>
+      <h3>Retrieval-Augmented Generation</h3>
+      <p>49 knowledge chunks across 14 patterns, grounded in CLRS, MIT OCW 6.006,
+         and Stanford CS161. Pre-computed with all-MiniLM-L6-v2, stored in Qdrant Cloud.</p>
+      <span class="chip">Qdrant · all-MiniLM-L6-v2</span>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎯</div>
+      <h3>Prompt Engineering</h3>
+      <p>Three system prompts implement Explainer, Socratic, and Screenshot modes.
+         The leakage gate is a secondary prompt that enforces the no-direct-answer constraint.</p>
+      <span class="chip">3 modes · Calibrated levels</span>
+    </div>
+    <div class="card">
+      <div class="card-icon">👁️</div>
+      <h3>Multimodal Integration</h3>
+      <p>Upload a LeetCode screenshot. Gemini Vision identifies the problem, difficulty, and DSA
+         pattern. Text-to-speech via browser-native Web Speech API — eyes stay on your code.</p>
+      <span class="chip">Gemini Vision · Web Speech</span>
+    </div>
+    <div class="card">
+      <div class="card-icon">🧪</div>
+      <h3>Synthetic Data</h3>
+      <p>110 auto-generated evaluation pairs across 22 Blind 75 problems and 5 interaction types:
+         hint L1/L2/L3, wrong direction, and leakage attempts.</p>
+      <span class="chip">110 pairs · 5 types</span>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- How it works -->
+<section style="background:var(--gray)" id="how">
+<div class="container">
+  <h2>How It Works</h2>
+  <p class="sub">Every student interaction goes through this pipeline.</p>
+  <div class="flow">
+    <div class="step"><div class="step-n">1</div><div>
+      <h4>Student sends a message or uploads a screenshot</h4>
+      <p>Text description of where they're stuck, or a LeetCode problem image via Gemini Vision.</p>
+    </div></div>
+    <div class="step"><div class="step-n">2</div><div>
+      <h4>Mode detection routes to Explainer, Socratic, or Screenshot</h4>
+      <p>A Gemini JSON call classifies intent: needs grounding, needs a hint, or uploaded an image.</p>
+    </div></div>
+    <div class="step"><div class="step-n">3</div><div>
+      <h4>Qdrant retrieves the top-4 most relevant knowledge chunks</h4>
+      <p>The query is embedded locally with all-MiniLM-L6-v2 (pre-computed, zero API cost) and
+         matched against the vector store via cosine similarity.</p>
+    </div></div>
+    <div class="step"><div class="step-n">4</div><div>
+      <h4>Gemini generates a calibrated hint using retrieved context</h4>
+      <p>The system prompt encodes the hint level (1–3), negative constraints (no algorithm names,
+         no code), and the retrieved chunks as grounding context.</p>
+    </div></div>
+    <div class="step"><div class="step-n">5</div><div>
+      <h4>Two-stage leakage gate validates every hint</h4>
+      <p>Stage 1: regex catches algorithm names, code syntax, Big-O answers.
+         Stage 2: semantic Gemini check for subtle leaks. Failed hints regenerate up to 3×.</p>
+    </div></div>
+    <div class="step"><div class="step-n">6</div><div>
+      <h4>Approved hint delivered with a 🔊 Listen button</h4>
+      <p>Web Speech API speaks the hint at 0.88× speed — student can keep eyes on their code editor.</p>
+    </div></div>
+  </div>
+
+  <!-- Example hint -->
+  <h3 style="margin-top:2.5rem;color:var(--blue)">Example — Two Sum · Hint Level 1</h3>
+  <div class="hint-card">
+    <div class="hint-meta">
+      Socratic mode · Level 1/3 · <span class="safe">✓ leakage check passed</span> ·
+      Source: AlgoSensei KB — Arrays Hashing (intuition)
+    </div>
+    <div class="hint-text">
+      What do you notice about elements you've already scanned through? If you found the right
+      answer at the very end of the array, what would you have needed to remember from earlier
+      in the scan to recognize it immediately?
+    </div>
+    <button class="listen-btn" onclick="speakHint()">🔊 Listen</button>
+  </div>
+  <p style="font-size:.88rem;color:var(--muted)">
+    The system never said "hash map". The student figures that out themselves —
+    which is the only way the intuition actually sticks.
+  </p>
+</div>
+</section>
+
+<!-- Metrics -->
+<section class="metrics-bg" id="metrics">
+<div class="container">
+  <h2>Evaluation Metrics</h2>
+  <p class="sub">Four measurable targets established in the project proposal.</p>
+  <div class="m-grid">
+    <div class="m-card">
+      <div class="m-val">&gt;90%</div>
+      <div class="m-lbl">Retrieval Recall @4</div>
+      <div class="m-tgt">Correct concept in top 4 retrieved chunks</div>
+    </div>
+    <div class="m-card">
+      <div class="m-val">&lt;5%</div>
+      <div class="m-lbl">Hint Leakage Rate</div>
+      <div class="m-tgt">Hints containing direct solution steps</div>
+    </div>
+    <div class="m-card">
+      <div class="m-val">&gt;95%</div>
+      <div class="m-lbl">Faithfulness Score</div>
+      <div class="m-tgt">Claims grounded in retrieved context</div>
+    </div>
+    <div class="m-card">
+      <div class="m-val">&gt;85%</div>
+      <div class="m-lbl">Directional Accuracy</div>
+      <div class="m-tgt">Hints pointing toward correct pattern</div>
+    </div>
+  </div>
+  <p style="margin-top:2rem;color:#CBD5E1;font-size:.9rem;max-width:600px">
+    The <strong style="color:#fff">Silent Failure</strong> — a fluent hint pointing toward
+    the <em>wrong</em> algorithm — has a name, a detection mechanism, and a measurable target.
+    The 110-pair synthetic evaluation dataset was built to find this failure, not hide it.
+  </p>
+</div>
+</section>
+
+<!-- Setup -->
+<section id="setup">
+<div class="container">
+  <h2>Run It Yourself</h2>
+  <p class="sub">Three minutes to a working local instance.</p>
+  <div class="code-block">
+# 1. Clone
+git clone https://github.com/adityaamitra/AlgoSensei
+cd AlgoSensei/algosensei_genai
+
+# 2. Install
+pip install -r requirements.txt
+
+# 3. Set API keys (.env file)
+cp .env.example .env
+# Add GEMINI_API_KEY, QDRANT_URL, QDRANT_API_KEY
+
+# 4. Build knowledge base in Qdrant (one-time, ~2 min)
+python scripts/setup_qdrant.py
+
+# 5. Generate evaluation data
+python scripts/generate_synthetic.py
+
+# 6. Launch
+streamlit run app.py</div>
+  <p style="margin-top:1.25rem;font-size:.9rem;color:var(--muted)">
+    Free API keys:
+    Gemini at <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a> ·
+    Qdrant at <a href="https://cloud.qdrant.io" target="_blank">cloud.qdrant.io</a>
+  </p>
+  <h3 style="margin-top:2rem;color:var(--blue)">Tech Stack</h3>
+  <span class="free">Total cost: $0</span>
+  <div class="pills">
+    <span class="pill">Gemini 1.5 Flash</span>
+    <span class="pill">Qdrant Cloud</span>
+    <span class="pill">all-MiniLM-L6-v2</span>
+    <span class="pill">Streamlit</span>
+    <span class="pill">Web Speech API</span>
+    <span class="pill">Hugging Face Spaces</span>
+    <span class="pill">GitHub Pages</span>
+  </div>
+</div>
+</section>
+
+<!-- Author -->
+<section style="text-align:center;padding:3rem 2rem;background:var(--gray)">
+<div class="container">
+  <h2>Built by Aditya Mitra</h2>
+  <p style="margin-top:.75rem;color:var(--muted);max-width:540px;margin:1rem auto 1.5rem">
+    The 11 PM moment in this proposal is not a hypothetical. This is the tool I needed and
+    didn't have — so I built it.
+  </p>
+  <a href="https://huggingface.co/spaces/adityaamitra/AlgoSensei" class="btn-w" target="_blank"
+     style="background:var(--blue);color:#fff">🚀 Try Live Demo</a>
+  <a href="https://github.com/adityaamitra/AlgoSensei" class="btn-o" target="_blank"
+     style="border-color:var(--blue);color:var(--blue)">GitHub</a>
+</div>
+</section>
+
+<footer>
+  <p>AlgoSensei · Aditya Mitra ·
+    <a href="https://github.com/adityaamitra/AlgoSensei" target="_blank">GitHub</a> ·
+    <a href="https://huggingface.co/spaces/adityaamitra/AlgoSensei" target="_blank">Live Demo</a>
+  </p>
+  <p style="margin-top:.4rem;font-size:.78rem;color:#475569">
+    Gemini 1.5 Flash · Qdrant Cloud · all-MiniLM-L6-v2 · Streamlit · Web Speech API
+  </p>
+</footer>
+
+<script>
+function speakHint() {
+  const t = "What do you notice about elements you've already scanned through? If you found the right answer at the very end of the array, what would you have needed to remember from earlier in the scan to recognize it immediately?";
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(t);
+    u.rate = 0.88; u.lang = 'en-US';
+    window.speechSynthesis.speak(u);
+  }
+}
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) { e.preventDefault(); t.scrollIntoView({behavior:'smooth'}); }
+  });
+});
+</script>
+</body>
+</html>
