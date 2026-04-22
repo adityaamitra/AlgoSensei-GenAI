@@ -1,0 +1,27 @@
+{
+  "total_pairs": 110,
+  "by_type": {
+    "hint_level_1": 22,
+    "hint_level_2": 22,
+    "hint_level_3": 22,
+    "wrong_direction": 22,
+    "leakage_attempt": 22
+  },
+  "by_pattern": {
+    "arrays_hashing": 10,
+    "two_pointers": 5,
+    "sliding_window": 10,
+    "stack": 10,
+    "binary_search": 10,
+    "linked_list": 5,
+    "trees": 10,
+    "tries": 5,
+    "heap_priority_queue": 5,
+    "backtracking": 10,
+    "graphs": 5,
+    "dynamic_programming_1d": 10,
+    "dynamic_programming_2d": 5,
+    "greedy": 10
+  },
+  "output_path": "/home/claude/algosensei_genai/synthetic/data/eval_pairs.jsonl"
+}
