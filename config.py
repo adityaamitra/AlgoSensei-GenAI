@@ -34,8 +34,8 @@ TOP_K           = 4
 
 # ── Models ────────────────────────────────────────────────────
 EMBEDDING_MODEL      = "sentence-transformers/all-MiniLM-L6-v2"
-GEMINI_MODEL         = "gemini-1.5-flash"
-GEMINI_VISION_MODEL  = "gemini-1.5-flash"
+GEMINI_MODEL         = "gemini-2.0-flash"
+GEMINI_VISION_MODEL  = "gemini-2.0-flash"
 MAX_OUTPUT_TOKENS    = 1024
 TEMPERATURE          = 0.3
 
