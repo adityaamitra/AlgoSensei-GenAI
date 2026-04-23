@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AlgoSensei — Tutor</title>
+<link rel="stylesheet" href="/static/style.css"/>
+<style>
+body{padding-top:var(--nav-h);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+.tutor-shell{flex:1;display:grid;grid-template-columns:340px 1fr;overflow:hidden;}
+
+/* Left panel */
+.panel-left{
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.prob-setup{padding:14px 16px;border-bottom:1px solid var(--border);}
+.prob-setup input,.prob-setup select{margin-bottom:10px;}
+.prob-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+
+/* Tabs */
+.panel-tabs{
+  display:flex;border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.panel-tab{
+  flex:1;padding:10px;text-align:center;
+  font-size:.8rem;font-weight:500;color:var(--muted);
+  background:transparent;border:none;border-bottom:2px solid transparent;
+  transition:all .15s;
+}
+.panel-tab:hover{color:var(--text);}
+.panel-tab.active{color:var(--text);border-bottom-color:var(--orange);}
+.tab-content{display:none;flex:1;overflow-y:auto;padding:14px 16px;flex-direction:column;gap:12px;}
+.tab-content.active{display:flex;}
+
+/* Hint buttons */
+.hint-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.hint-btn{
+  padding:9px 6px;border-radius:var(--radius);
+  font-size:.78rem;font-weight:600;text-align:center;
+  background:var(--bg);border:1px solid var(--border);
+  color:var(--muted);transition:all .15s;
+}
+.hint-btn:hover{background:var(--orange-dim);border-color:var(--orange-border);color:var(--orange);}
+.hint-btn-label{font-size:.65rem;font-weight:600;color:var(--orange);margin-bottom:2px;}
+.hint-btn-desc{font-size:.68rem;color:var(--faint);}
+
+/* Right panel */
+.panel-right{
+  display:flex;flex-direction:column;overflow:hidden;
+  background:var(--bg);
+}
+.output-area{flex:1;overflow-y:auto;padding:20px 24px;}
+
+/* Welcome state */
+.welcome{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;height:100%;gap:16px;
+}
+.welcome-icon{font-size:2.8rem;}
+.welcome h2{font-size:1.15rem;font-weight:600;color:var(--text);}
+.welcome p{font-size:.85rem;color:var(--muted);max-width:380px;line-height:1.7;}
+.welcome-cards{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:8px;}
+.w-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:12px 16px;min-width:120px;text-align:left;
+}
+.w-card-level{font-size:.65rem;font-weight:700;color:var(--orange);margin-bottom:3px;text-transform:uppercase;}
+.w-card-desc{font-size:.75rem;color:var(--muted);}
+
+/* Hint result */
+.hint-result{display:none;}
+.hint-result.show{display:block;}
+.hint-header{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  margin-bottom:14px;
+}
+.hint-body{
+  background:var(--surface);border:1px solid var(--border);
+  border-left:3px solid var(--orange);
+  border-radius:0 var(--radius-lg) var(--radius-lg) 0;
+  padding:18px 20px;
+  font-size:.9rem;line-height:1.8;color:var(--text);
+}
+.sources-toggle{
+  display:flex;align-items:center;gap:6px;
+  font-size:.75rem;color:var(--faint);
+  margin-top:12px;cursor:pointer;
+  background:transparent;border:none;
+  transition:color .15s;
+}
+.sources-toggle:hover{color:var(--muted);}
+.sources-list{display:none;margin-top:8px;}
+.sources-list.open{display:block;}
+
+/* Screenshot area */
+.drop-zone{
+  border:2px dashed var(--border);border-radius:var(--radius-lg);
+  padding:32px;text-align:center;cursor:pointer;
+  transition:all .2s;
+}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--orange);background:var(--orange-dim);}
+.drop-zone input{display:none;}
+.drop-icon{font-size:2rem;margin-bottom:10px;}
+.drop-title{font-size:.88rem;font-weight:500;color:var(--text);margin-bottom:4px;}
+.drop-sub{font-size:.75rem;color:var(--muted);}
+.screenshot-result{display:none;margin-top:14px;}
+.screenshot-result.show{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.img-preview{border-radius:var(--radius);border:1px solid var(--border);width:100%;object-fit:contain;max-height:280px;}
+
+/* Status bar */
+.status-bar{
+  background:var(--surface);border-top:1px solid var(--border);
+  padding:7px 16px;display:flex;align-items:center;gap:16px;
+  font-size:.72rem;color:var(--faint);flex-shrink:0;
+}
+.st-item{display:flex;align-items:center;gap:5px;}
+.st-val{color:var(--muted);font-weight:500;}
+.st-val.green{color:var(--green);}
+.st-val.orange{color:var(--orange);}
+
+/* Chat */
+.chat-bar{
+  border-top:1px solid var(--border);padding:10px 16px;
+  display:flex;gap:8px;align-items:center;background:var(--surface);
+  flex-shrink:0;
+}
+.chat-input{
+  flex:1;background:var(--bg);border:1px solid var(--border);
+  color:var(--text);border-radius:var(--radius);
+  padding:8px 12px;font-size:.85rem;
+}
+.chat-input:focus{outline:none;border-color:var(--orange);}
+.chat-send{
+  background:var(--orange);color:#1A1A1A;border:none;
+  border-radius:var(--radius);padding:8px 14px;
+  font-size:.85rem;font-weight:600;transition:all .2s;
+}
+.chat-send:hover{background:#FFB84D;}
+
+/* Explain output */
+#explain-out{display:none;}
+#explain-out.show{display:block;}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-logo" href="/">🧠 <span>AlgoSensei</span></a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">Home</a>
+    <a href="/tutor" class="nav-link active">Tutor</a>
+  </div>
+  <div class="nav-right">
+    <div class="nav-stat" id="stat-bar">
+      <span class="dot dot-green"></span>
+      <span>Hints: <b id="stat-hints">0</b></span>
+      <span style="color:var(--border2)">|</span>
+      <span>Leakage: <b id="stat-leak">0.0%</b></span>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="resetSession()">↺ New session</button>
+  </div>
+</nav>
+
+<div class="tutor-shell">
+
+  <!-- ── LEFT PANEL ── -->
+  <div class="panel-left">
+    <div class="prob-setup">
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label">Problem</label>
+        <input class="form-input" id="problem-input" placeholder="e.g. Two Sum" oninput="updateMeta()"/>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="form-group">
+          <label class="form-label">Difficulty</label>
+          <select class="form-select" id="diff-select" onchange="updateMeta()">
+            <option>Easy</option>
+            <option selected>Medium</option>
+            <option>Hard</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pattern</label>
+          <select class="form-select" id="pattern-select" onchange="updateMeta()">
+            <option value="">auto-detect</option>
+            <option value="arrays_hashing">Arrays & Hashing</option>
+            <option value="two_pointers">Two Pointers</option>
+            <option value="sliding_window">Sliding Window</option>
+            <option value="stack">Stack</option>
+            <option value="binary_search">Binary Search</option>
+            <option value="linked_list">Linked List</option>
+            <option value="trees">Trees</option>
+            <option value="tries">Tries</option>
+            <option value="heap_priority_queue">Heap / PQ</option>
+            <option value="backtracking">Backtracking</option>
+            <option value="graphs">Graphs</option>
+            <option value="dynamic_programming_1d">DP 1D</option>
+            <option value="dynamic_programming_2d">DP 2D</option>
+            <option value="greedy">Greedy</option>
+          </select>
+        </div>
+      </div>
+      <div class="prob-meta" id="prob-meta"></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="panel-tabs">
+      <button class="panel-tab active" onclick="switchTab('hint',this)">💡 Hint</button>
+      <button class="panel-tab" onclick="switchTab('explain',this)">📖 Explain</button>
+      <button class="panel-tab" onclick="switchTab('screenshot',this)">📸 Screenshot</button>
+    </div>
+
+    <!-- Hint tab -->
+    <div class="tab-content active" id="tab-hint">
+      <div class="form-group">
+        <label class="form-label">Where are you stuck? (optional)</label>
+        <textarea class="form-textarea" id="stuck-input" placeholder="Describe what you've tried..." style="height:70px;"></textarea>
+      </div>
+      <div class="hint-btns">
+        <button class="hint-btn" onclick="getHint(1)">
+          <div class="hint-btn-label">Hint 1</div>
+          <div class="hint-btn-desc">Direction only</div>
+        </button>
+        <button class="hint-btn" onclick="getHint(2)">
+          <div class="hint-btn-label">Hint 2</div>
+          <div class="hint-btn-desc">Structure</div>
+        </button>
+        <button class="hint-btn" onclick="getHint(3)">
+          <div class="hint-btn-label">Hint 3</div>
+          <div class="hint-btn-desc">Near-solution</div>
+        </button>
+      </div>
+      <button class="btn btn-secondary" style="width:100%;margin-top:4px;" onclick="getHint(null)">➡ Next Hint</button>
+    </div>
+
+    <!-- Explain tab -->
+    <div class="tab-content" id="tab-explain">
+      <div class="form-group">
+        <label class="form-label">Concept</label>
+        <input class="form-input" id="explain-input" placeholder="e.g. dynamic programming, sliding window"/>
+      </div>
+      <button class="btn btn-primary" style="width:100%;" onclick="explainConcept()">📖 Explain</button>
+    </div>
+
+    <!-- Screenshot tab -->
+    <div class="tab-content" id="tab-screenshot">
+      <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+        <input type="file" id="file-input" accept="image/*" onchange="handleFile(this.files[0])"/>
+        <div class="drop-icon">📸</div>
+        <div class="drop-title">Drop a screenshot here</div>
+        <div class="drop-sub">or click to browse · PNG, JPG</div>
+      </div>
+    </div>
+
+    <!-- Status bar -->
+    <div class="status-bar">
+      <div class="st-item"><span>Hints:</span><span class="st-val" id="sb-hints">0</span></div>
+      <div class="st-item"><span>Leakage:</span><span class="st-val green" id="sb-leak">0.0%</span></div>
+      <div class="st-item" id="sb-prob" style="display:none;"><span>Problem:</span><span class="st-val orange" id="sb-prob-name"></span></div>
+    </div>
+  </div>
+
+  <!-- ── RIGHT PANEL ── -->
+  <div class="panel-right">
+    <div class="output-area" id="output-area">
+
+      <!-- Welcome state -->
+      <div class="welcome" id="welcome-state">
+        <div class="welcome-icon">🧠</div>
+        <h2>Ready to tackle a problem?</h2>
+        <p>Enter a problem title on the left and click any hint button. AlgoSensei will guide you toward the answer — without giving it away.</p>
+        <div class="welcome-cards">
+          <div class="w-card"><div class="w-card-level">Hint 1</div><div class="w-card-desc">Direction only</div></div>
+          <div class="w-card"><div class="w-card-level">Hint 2</div><div class="w-card-desc">Structure hint</div></div>
+          <div class="w-card"><div class="w-card-level">Hint 3</div><div class="w-card-desc">Near-solution</div></div>
+        </div>
+      </div>
+
+      <!-- Loading state -->
+      <div class="loading-overlay" id="loading-state" style="display:none;">
+        <div class="spinner"></div>
+        <span id="loading-msg">Generating hint...</span>
+      </div>
+
+      <!-- Hint result -->
+      <div class="hint-result" id="hint-result">
+        <div class="hint-header" id="hint-header"></div>
+        <div class="hint-body" id="hint-body"></div>
+        <button class="listen-btn" id="listen-btn" onclick="speakHint()">🔊 Listen</button>
+        <button class="sources-toggle" id="sources-toggle" onclick="toggleSources()">
+          <span id="src-count"></span> ▾ sources
+        </button>
+        <div class="sources-list" id="sources-list"></div>
+      </div>
+
+      <!-- Explain result -->
+      <div id="explain-out">
+        <div class="hint-header" id="explain-header"></div>
+        <div class="hint-body" id="explain-body"></div>
+        <button class="listen-btn" onclick="speakExplain()">🔊 Listen</button>
+        <button class="sources-toggle" onclick="toggleExplainSources()">
+          <span id="exp-src-count"></span> ▾ sources
+        </button>
+        <div class="sources-list" id="explain-sources"></div>
+      </div>
+
+      <!-- Screenshot result -->
+      <div class="screenshot-result" id="screenshot-result">
+        <div>
+          <img id="screenshot-img" class="img-preview" src="" alt="screenshot"/>
+        </div>
+        <div>
+          <div id="screenshot-info"></div>
+          <div class="hint-body" id="screenshot-hint" style="margin-top:12px;"></div>
+          <button class="listen-btn" onclick="speakScreenshot()">🔊 Listen</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Chat -->
+    <div class="chat-bar">
+      <input class="chat-input" id="chat-input" placeholder="Ask anything about DSA..."
+        onkeydown="if(event.key==='Enter')sendChat()"/>
+      <button class="chat-send" onclick="sendChat()">↑</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── State ────────────────────────────────────────────────────
+let currentHint = '';
+let currentExplain = '';
+let currentScreenshot = '';
+let sessionHints = 0;
+let sessionLeakage = 0.0;
+
+// ── Tab switching ────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── Problem meta tags ────────────────────────────────────────
+function updateMeta() {
+  const prob = document.getElementById('problem-input').value;
+  const diff = document.getElementById('diff-select').value;
+  const pat  = document.getElementById('pattern-select');
+  const patLabel = pat.options[pat.selectedIndex].text;
+  const meta = document.getElementById('prob-meta');
+  if (!prob) { meta.innerHTML = ''; return; }
+  const diffClass = {Easy:'tag-easy',Medium:'tag-medium',Hard:'tag-hard'}[diff]||'tag-medium';
+  meta.innerHTML = `<span class="tag ${diffClass}">${diff}</span><span class="tag tag-blue">${patLabel}</span>`;
+  if (prob) {
+    document.getElementById('sb-prob').style.display = 'flex';
+    document.getElementById('sb-prob-name').textContent = prob.substring(0,20);
+  }
+}
+
+// ── Show/hide states ─────────────────────────────────────────
+function showLoading(msg) {
+  document.getElementById('welcome-state').style.display = 'none';
+  document.getElementById('loading-state').style.display = 'flex';
+  document.getElementById('loading-msg').textContent = msg || 'Generating...';
+  document.getElementById('hint-result').classList.remove('show');
+  document.getElementById('explain-out').classList.remove('show');
+  document.getElementById('screenshot-result').classList.remove('show');
+}
+function hideLoading() {
+  document.getElementById('loading-state').style.display = 'none';
+}
+function showToast(msg, type='success') {
+  let t = document.querySelector('.toast');
+  if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span>${type === 'success' ? '✓' : '✗'}</span> ${msg}`;
+  requestAnimationFrame(() => { t.classList.add('show'); });
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+function updateStats(hints, leakage) {
+  sessionHints = hints || sessionHints;
+  sessionLeakage = leakage !== undefined ? leakage : sessionLeakage;
+  document.getElementById('stat-hints').textContent = sessionHints;
+  document.getElementById('stat-leak').textContent = (sessionLeakage*100).toFixed(1)+'%';
+  document.getElementById('sb-hints').textContent = sessionHints;
+  const leakEl = document.getElementById('sb-leak');
+  leakEl.textContent = (sessionLeakage*100).toFixed(1)+'%';
+  leakEl.className = 'st-val ' + (sessionLeakage === 0 ? 'green' : 'orange');
+}
+
+// ── Get hint ─────────────────────────────────────────────────
+async function getHint(level) {
+  const problem = document.getElementById('problem-input').value.trim();
+  if (!problem) { showToast('Enter a problem name first', 'error'); return; }
+  showLoading(`Generating hint ${level || ''}...`);
+  try {
+    const res = await fetch('/api/hint', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        problem,
+        difficulty: document.getElementById('diff-select').value,
+        pattern: document.getElementById('pattern-select').value,
+        student_context: document.getElementById('stuck-input').value,
+        hint_level: level,
+      })
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    hideLoading();
+    currentHint = data.response;
+    const lvl = data.hint_level;
+    const safe = data.safe;
+    document.getElementById('hint-header').innerHTML =
+      `<span class="tag tag-medium">Hint ${lvl}/3</span>` +
+      `<span class="tag ${safe?'tag-safe':'tag-medium'}">${safe?'✓ safe':'⚠ regenerated'}</span>` +
+      `<span style="font-size:.72rem;color:var(--faint);">· ${(data.sources||[]).length} sources</span>`;
+    document.getElementById('hint-body').textContent = data.response;
+    // Sources
+    const sl = document.getElementById('sources-list');
+    sl.innerHTML = (data.sources||[]).map((s,i)=>
+      `<div class="source-item"><div class="source-label">[${i+1}] ${s.label} · ${s.score}</div><div class="source-body">${s.text}</div></div>`
+    ).join('');
+    document.getElementById('src-count').textContent = (data.sources||[]).length;
+    document.getElementById('hint-result').classList.add('show');
+    document.getElementById('explain-out').classList.remove('show');
+    document.getElementById('screenshot-result').classList.remove('show');
+    updateStats(data.total_hints, data.leakage_rate);
+  } catch(e) {
+    hideLoading();
+    showToast('Error: ' + e.message, 'error');
+    document.getElementById('welcome-state').style.display = 'flex';
+  }
+}
+
+function toggleSources() {
+  const sl = document.getElementById('sources-list');
+  sl.classList.toggle('open');
+}
+function toggleExplainSources() {
+  document.getElementById('explain-sources').classList.toggle('open');
+}
+
+// ── Explain ──────────────────────────────────────────────────
+async function explainConcept() {
+  const topic = document.getElementById('explain-input').value.trim();
+  if (!topic) { showToast('Enter a concept', 'error'); return; }
+  showLoading('Retrieving from knowledge base...');
+  try {
+    const res = await fetch('/api/explain', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({topic, pattern: document.getElementById('pattern-select').value})
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    hideLoading();
+    currentExplain = data.response;
+    document.getElementById('explain-header').innerHTML =
+      `<span class="tag tag-blue">Explainer</span>` +
+      `<span class="tag tag-safe">faithfulness: ${Math.round((data.faithfulness||0)*100)}%</span>` +
+      `<span style="font-size:.72rem;color:var(--faint);">· ${(data.sources||[]).length} sources</span>`;
+    document.getElementById('explain-body').textContent = data.response;
+    const es = document.getElementById('explain-sources');
+    es.innerHTML = (data.sources||[]).map((s,i)=>
+      `<div class="source-item"><div class="source-label">[${i+1}] ${s.label} · ${s.score}</div><div class="source-body">${s.text}</div></div>`
+    ).join('');
+    document.getElementById('exp-src-count').textContent = (data.sources||[]).length;
+    document.getElementById('explain-out').classList.add('show');
+    document.getElementById('hint-result').classList.remove('show');
+    document.getElementById('screenshot-result').classList.remove('show');
+  } catch(e) {
+    hideLoading(); showToast('Error: ' + e.message, 'error');
+    document.getElementById('welcome-state').style.display = 'flex';
+  }
+}
+
+// ── Screenshot ───────────────────────────────────────────────
+function handleFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('screenshot-img').src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  analyzeScreenshot(file);
+}
+
+async function analyzeScreenshot(file) {
+  showLoading('Reading screenshot...');
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await fetch('/api/screenshot', {method:'POST', body:fd});
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    hideLoading();
+    currentScreenshot = data.response || '';
+    if (data.success) {
+      const diffClass = {Easy:'tag-easy',Medium:'tag-medium',Hard:'tag-hard'}[data.difficulty]||'tag-medium';
+      document.getElementById('screenshot-info').innerHTML =
+        `<div style="font-size:.95rem;font-weight:600;color:var(--text);margin-bottom:8px;">${data.problem_title}</div>` +
+        `<div style="display:flex;gap:6px;flex-wrap:wrap;">` +
+        `<span class="tag ${diffClass}">${data.difficulty}</span>` +
+        `<span class="tag tag-blue">${data.pattern}</span>` +
+        `<span class="tag tag-safe">${data.confidence} confidence</span></div>`;
+      document.getElementById('screenshot-hint').textContent = data.response;
+      // update problem field
+      document.getElementById('problem-input').value = data.problem_title;
+      document.getElementById('pattern-select').value = data.pattern || '';
+      updateMeta();
+    } else {
+      document.getElementById('screenshot-info').innerHTML =
+        `<div class="tag" style="background:var(--red-dim);color:var(--red);">Could not analyze</div>`;
+      document.getElementById('screenshot-hint').textContent = data.response || 'Try the Get a Hint tab instead.';
+    }
+    document.getElementById('screenshot-result').classList.add('show');
+    document.getElementById('hint-result').classList.remove('show');
+    document.getElementById('explain-out').classList.remove('show');
+  } catch(e) {
+    hideLoading(); showToast('Error: ' + e.message, 'error');
+    document.getElementById('welcome-state').style.display = 'flex';
+  }
+}
+
+// Drag and drop
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) handleFile(f);
+});
+
+// ── Chat ─────────────────────────────────────────────────────
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  showLoading('Thinking...');
+  try {
+    const res = await fetch('/api/hint', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        problem: document.getElementById('problem-input').value || msg.substring(0,50),
+        difficulty: document.getElementById('diff-select').value,
+        pattern: document.getElementById('pattern-select').value,
+        student_context: msg,
+      })
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    hideLoading();
+    currentHint = data.response;
+    document.getElementById('hint-header').innerHTML =
+      `<span class="tag tag-blue">Chat response</span>` +
+      `<span class="tag ${data.safe?'tag-safe':'tag-medium'}">${data.safe?'✓ safe':'⚠ regenerated'}</span>`;
+    document.getElementById('hint-body').textContent = data.response;
+    document.getElementById('hint-result').classList.add('show');
+    document.getElementById('explain-out').classList.remove('show');
+    document.getElementById('screenshot-result').classList.remove('show');
+    updateStats(data.total_hints, data.leakage_rate);
+  } catch(e) {
+    hideLoading(); showToast(e.message, 'error');
+  }
+}
+
+// ── Audio ────────────────────────────────────────────────────
+function speakText(text) {
+  if (!('speechSynthesis' in window)) { showToast('Speech not supported in this browser', 'error'); return; }
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = 0.88; u.lang = 'en-US';
+  window.speechSynthesis.speak(u);
+  showToast('Playing...', 'success');
+}
+function speakHint() { speakText(currentHint); }
+function speakExplain() { speakText(currentExplain); }
+function speakScreenshot() { speakText(currentScreenshot); }
+
+// ── Reset ────────────────────────────────────────────────────
+async function resetSession() {
+  await fetch('/api/reset', {method:'POST'});
+  sessionHints = 0; sessionLeakage = 0.0;
+  document.getElementById('problem-input').value = '';
+  document.getElementById('stuck-input').value = '';
+  document.getElementById('explain-input').value = '';
+  document.getElementById('prob-meta').innerHTML = '';
+  document.getElementById('hint-result').classList.remove('show');
+  document.getElementById('explain-out').classList.remove('show');
+  document.getElementById('screenshot-result').classList.remove('show');
+  document.getElementById('welcome-state').style.display = 'flex';
+  updateStats(0, 0);
+  showToast('Session reset');
+}
+</script>
+</body>
+</html>
