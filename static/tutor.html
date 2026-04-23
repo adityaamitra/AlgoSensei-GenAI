@@ -1,188 +1,536 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>AlgoSensei — Tutor</title>
-<link rel="stylesheet" href="/static/style.css"/>
-<style>
-body{padding-top:var(--nav-h);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
-.tutor-shell{flex:1;display:grid;grid-template-columns:340px 1fr;overflow:hidden;}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>AlgoSensei — Tutor</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    body {
+      padding-top: var(--nav-h);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
 
-/* Left panel */
-.panel-left{
-  background:var(--surface);border-right:1px solid var(--border);
-  display:flex;flex-direction:column;overflow:hidden;
-}
-.prob-setup{padding:14px 16px;border-bottom:1px solid var(--border);}
-.prob-setup input,.prob-setup select{margin-bottom:10px;}
-.prob-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+    .tutor-shell {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      overflow: hidden;
+    }
 
-/* Tabs */
-.panel-tabs{
-  display:flex;border-bottom:1px solid var(--border);flex-shrink:0;
-}
-.panel-tab{
-  flex:1;padding:10px;text-align:center;
-  font-size:.8rem;font-weight:500;color:var(--muted);
-  background:transparent;border:none;border-bottom:2px solid transparent;
-  transition:all .15s;
-}
-.panel-tab:hover{color:var(--text);}
-.panel-tab.active{color:var(--text);border-bottom-color:var(--orange);}
-.tab-content{display:none;flex:1;overflow-y:auto;padding:14px 16px;flex-direction:column;gap:12px;}
-.tab-content.active{display:flex;}
+    /* Left panel */
+    .panel-left {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
-/* Hint buttons */
-.hint-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
-.hint-btn{
-  padding:9px 6px;border-radius:var(--radius);
-  font-size:.78rem;font-weight:600;text-align:center;
-  background:var(--bg);border:1px solid var(--border);
-  color:var(--muted);transition:all .15s;
-}
-.hint-btn:hover{background:var(--orange-dim);border-color:var(--orange-border);color:var(--orange);}
-.hint-btn-label{font-size:.65rem;font-weight:600;color:var(--orange);margin-bottom:2px;}
-.hint-btn-desc{font-size:.68rem;color:var(--faint);}
+    .prob-setup {
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
 
-/* Right panel */
-.panel-right{
-  display:flex;flex-direction:column;overflow:hidden;
-  background:var(--bg);
-}
-.output-area{flex:1;overflow-y:auto;padding:20px 24px;}
+    .prob-meta {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
 
-/* Welcome state */
-.welcome{
-  display:flex;flex-direction:column;align-items:center;
-  justify-content:center;text-align:center;height:100%;gap:16px;
-}
-.welcome-icon{font-size:2.8rem;}
-.welcome h2{font-size:1.15rem;font-weight:600;color:var(--text);}
-.welcome p{font-size:.85rem;color:var(--muted);max-width:380px;line-height:1.7;}
-.welcome-cards{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:8px;}
-.w-card{
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  padding:12px 16px;min-width:120px;text-align:left;
-}
-.w-card-level{font-size:.65rem;font-weight:700;color:var(--orange);margin-bottom:3px;text-transform:uppercase;}
-.w-card-desc{font-size:.75rem;color:var(--muted);}
+    /* Problem browser */
+    .prob-browser {
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      flex: 1;
+    }
 
-/* Hint result */
-.hint-result{display:none;}
-.hint-result.show{display:block;}
-.hint-header{
-  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-  margin-bottom:14px;
-}
-.hint-body{
-  background:var(--surface);border:1px solid var(--border);
-  border-left:3px solid var(--orange);
-  border-radius:0 var(--radius-lg) var(--radius-lg) 0;
-  padding:18px 20px;
-  font-size:.9rem;line-height:1.8;color:var(--text);
-}
-.sources-toggle{
-  display:flex;align-items:center;gap:6px;
-  font-size:.75rem;color:var(--faint);
-  margin-top:12px;cursor:pointer;
-  background:transparent;border:none;
-  transition:color .15s;
-}
-.sources-toggle:hover{color:var(--muted);}
-.sources-list{display:none;margin-top:8px;}
-.sources-list.open{display:block;}
+    .prob-browser.open {
+      display: flex;
+    }
 
-/* Screenshot area */
-.drop-zone{
-  border:2px dashed var(--border);border-radius:var(--radius-lg);
-  padding:32px;text-align:center;cursor:pointer;
-  transition:all .2s;
-}
-.drop-zone:hover,.drop-zone.drag{border-color:var(--orange);background:var(--orange-dim);}
-.drop-zone input{display:none;}
-.drop-icon{font-size:2rem;margin-bottom:10px;}
-.drop-title{font-size:.88rem;font-weight:500;color:var(--text);margin-bottom:4px;}
-.drop-sub{font-size:.75rem;color:var(--muted);}
-.screenshot-result{display:none;margin-top:14px;}
-.screenshot-result.show{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.img-preview{border-radius:var(--radius);border:1px solid var(--border);width:100%;object-fit:contain;max-height:280px;}
+    .browser-search {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 6px;
+    }
 
-/* Status bar */
-.status-bar{
-  background:var(--surface);border-top:1px solid var(--border);
-  padding:7px 16px;display:flex;align-items:center;gap:16px;
-  font-size:.72rem;color:var(--faint);flex-shrink:0;
-}
-.st-item{display:flex;align-items:center;gap:5px;}
-.st-val{color:var(--muted);font-weight:500;}
-.st-val.green{color:var(--green);}
-.st-val.orange{color:var(--orange);}
+    .browser-filters {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
 
-/* Chat */
-.chat-bar{
-  border-top:1px solid var(--border);padding:10px 16px;
-  display:flex;gap:8px;align-items:center;background:var(--surface);
-  flex-shrink:0;
-}
-.chat-input{
-  flex:1;background:var(--bg);border:1px solid var(--border);
-  color:var(--text);border-radius:var(--radius);
-  padding:8px 12px;font-size:.85rem;
-}
-.chat-input:focus{outline:none;border-color:var(--orange);}
-.chat-send{
-  background:var(--orange);color:#1A1A1A;border:none;
-  border-radius:var(--radius);padding:8px 14px;
-  font-size:.85rem;font-weight:600;transition:all .2s;
-}
-.chat-send:hover{background:#FFB84D;}
+    .filter-pill {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: .72rem;
+      font-weight: 500;
+      background: var(--surface2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all .15s;
+    }
 
-/* Explain output */
-#explain-out{display:none;}
-#explain-out.show{display:block;}
-</style>
+    .filter-pill.active {
+      background: var(--orange-dim);
+      color: var(--orange);
+      border-color: var(--orange-border);
+    }
+
+    .problem-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .prob-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background .1s;
+    }
+
+    .prob-item:hover {
+      background: var(--surface2);
+    }
+
+    .prob-item.selected {
+      background: rgba(255, 161, 22, .08);
+      border-left: 2px solid var(--orange);
+    }
+
+    .prob-item-title {
+      font-size: .83rem;
+      font-weight: 500;
+      color: var(--text);
+      flex: 1;
+    }
+
+    .prob-item-tags {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    /* Panel tabs */
+    .panel-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .panel-tab {
+      flex: 1;
+      padding: 9px 4px;
+      text-align: center;
+      font-size: .78rem;
+      font-weight: 500;
+      color: var(--muted);
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+
+    .panel-tab:hover {
+      color: var(--text);
+    }
+
+    .panel-tab.active {
+      color: var(--text);
+      border-bottom-color: var(--orange);
+    }
+
+    .tab-content {
+      display: none;
+      overflow-y: auto;
+      padding: 14px 16px;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .tab-content.active {
+      display: flex;
+      flex: 1;
+    }
+
+    /* Hint buttons */
+    .hint-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+    }
+
+    .hint-btn {
+      padding: 8px 4px;
+      border-radius: var(--radius);
+      font-size: .75rem;
+      font-weight: 600;
+      text-align: center;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      transition: all .15s;
+    }
+
+    .hint-btn:hover {
+      background: var(--orange-dim);
+      border-color: var(--orange-border);
+      color: var(--orange);
+    }
+
+    .hint-btn-label {
+      font-size: .62rem;
+      font-weight: 700;
+      color: var(--orange);
+      margin-bottom: 2px;
+    }
+
+    .hint-btn-desc {
+      font-size: .65rem;
+      color: var(--faint);
+    }
+
+    /* Code editor */
+    .code-editor {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: .8rem;
+      color: var(--text);
+      padding: 10px 12px;
+      resize: vertical;
+      min-height: 140px;
+      line-height: 1.6;
+      tab-size: 2;
+    }
+
+    .code-editor:focus {
+      outline: none;
+      border-color: var(--orange);
+    }
+
+    /* Right panel */
+    .panel-right {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    .output-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px;
+    }
+
+    /* Welcome */
+    .welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      height: 100%;
+      gap: 14px;
+      padding: 20px;
+    }
+
+    .welcome-icon {
+      font-size: 2.6rem;
+    }
+
+    .welcome h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .welcome p {
+      font-size: .83rem;
+      color: var(--muted);
+      max-width: 360px;
+      line-height: 1.7;
+    }
+
+    .welcome-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      width: 100%;
+      max-width: 440px;
+      margin-top: 6px;
+    }
+
+    .w-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    .w-card-level {
+      font-size: .62rem;
+      font-weight: 700;
+      color: var(--orange);
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+
+    .w-card-desc {
+      font-size: .72rem;
+      color: var(--muted);
+    }
+
+    /* Hint output */
+    .result-card {
+      display: none;
+    }
+
+    .result-card.show {
+      display: block;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .result-body {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--orange);
+      border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+      padding: 16px 18px;
+      font-size: .9rem;
+      line-height: 1.8;
+      color: var(--text);
+    }
+
+    .result-body.code-feedback {
+      border-left-color: var(--blue);
+    }
+
+    .sources-toggle {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: .72rem;
+      color: var(--faint);
+      margin-top: 10px;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      transition: color .15s;
+    }
+
+    .sources-toggle:hover {
+      color: var(--muted);
+    }
+
+    .sources-list {
+      display: none;
+      margin-top: 6px;
+    }
+
+    .sources-list.open {
+      display: block;
+    }
+
+    /* Session tracker */
+    .session-tracker {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      margin-bottom: 14px;
+    }
+
+    .session-tracker-title {
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hint-progress {
+      display: flex;
+      gap: 6px;
+    }
+
+    .hint-step {
+      flex: 1;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--border);
+      transition: all .3s;
+    }
+
+    .hint-step.done {
+      background: var(--orange);
+    }
+
+    .hint-step.current {
+      background: var(--orange);
+      opacity: .5;
+    }
+
+    /* Status bar */
+    .status-bar {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 7px 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: .72rem;
+      color: var(--faint);
+      flex-shrink: 0;
+    }
+
+    .st-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .st-val {
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .st-val.green {
+      color: var(--green);
+    }
+
+    .st-val.orange {
+      color: var(--orange);
+    }
+
+    /* Chat */
+    .chat-bar {
+      border-top: 1px solid var(--border);
+      padding: 10px 14px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: var(--radius);
+      padding: 8px 12px;
+      font-size: .85rem;
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border-color: var(--orange);
+    }
+
+    .chat-send {
+      background: var(--orange);
+      color: #1A1A1A;
+      border: none;
+      border-radius: var(--radius);
+      padding: 8px 14px;
+      font-size: .9rem;
+      font-weight: 700;
+      transition: all .2s;
+    }
+
+    .chat-send:hover {
+      background: #FFB84D;
+    }
+
+    /* Screenshot */
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.drag {
+      border-color: var(--orange);
+      background: var(--orange-dim);
+    }
+
+    .drop-zone input {
+      display: none;
+    }
+  </style>
 </head>
+
 <body>
 
-<nav class="nav">
-  <a class="nav-logo" href="/">🧠 <span>AlgoSensei</span></a>
-  <div class="nav-links">
-    <a href="/" class="nav-link">Home</a>
-    <a href="/tutor" class="nav-link active">Tutor</a>
-  </div>
-  <div class="nav-right">
-    <div class="nav-stat" id="stat-bar">
-      <span class="dot dot-green"></span>
-      <span>Hints: <b id="stat-hints">0</b></span>
-      <span style="color:var(--border2)">|</span>
-      <span>Leakage: <b id="stat-leak">0.0%</b></span>
+  <nav class="nav">
+    <a class="nav-logo" href="/">🧠 <span>AlgoSensei</span></a>
+    <div class="nav-links">
+      <a href="/" class="nav-link">Home</a>
+      <a href="/tutor" class="nav-link active">Tutor</a>
     </div>
-    <button class="btn btn-ghost btn-sm" onclick="resetSession()">↺ New session</button>
-  </div>
-</nav>
-
-<div class="tutor-shell">
-
-  <!-- ── LEFT PANEL ── -->
-  <div class="panel-left">
-    <div class="prob-setup">
-      <div class="form-group" style="margin-bottom:10px;">
-        <label class="form-label">Problem</label>
-        <input class="form-input" id="problem-input" placeholder="e.g. Two Sum" oninput="updateMeta()"/>
+    <div class="nav-right">
+      <div class="nav-stat">
+        <span class="dot dot-green"></span>
+        Hints: <b id="stat-hints">0</b>&nbsp;|&nbsp;Leakage: <b id="stat-leak">0.0%</b>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div class="form-group">
-          <label class="form-label">Difficulty</label>
-          <select class="form-select" id="diff-select" onchange="updateMeta()">
+      <button class="btn btn-ghost btn-sm" onclick="resetSession()">↺ Reset</button>
+    </div>
+  </nav>
+
+  <div class="tutor-shell">
+
+    <!-- ── LEFT PANEL ── -->
+    <div class="panel-left">
+
+      <!-- Problem setup -->
+      <div class="prob-setup">
+        <div style="display:flex;gap:6px;align-items:center;">
+          <div class="form-group" style="flex:1;margin:0;">
+            <input class="form-input" id="problem-input" placeholder="Enter problem name..." oninput="updateMeta()"
+              style="font-size:.83rem;" />
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="toggleBrowser()" id="browse-btn" title="Browse problems"
+            style="flex-shrink:0;padding:8px 10px;">⊞</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;">
+          <select class="form-select" id="diff-select" onchange="updateMeta()" style="font-size:.8rem;">
             <option>Easy</option>
             <option selected>Medium</option>
             <option>Hard</option>
           </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Pattern</label>
-          <select class="form-select" id="pattern-select" onchange="updateMeta()">
+          <select class="form-select" id="pattern-select" onchange="updateMeta()" style="font-size:.8rem;">
             <option value="">auto-detect</option>
             <option value="arrays_hashing">Arrays & Hashing</option>
             <option value="two_pointers">Two Pointers</option>
@@ -200,406 +548,645 @@ body{padding-top:var(--nav-h);height:100vh;overflow:hidden;display:flex;flex-dir
             <option value="greedy">Greedy</option>
           </select>
         </div>
+        <div class="prob-meta" id="prob-meta"></div>
       </div>
-      <div class="prob-meta" id="prob-meta"></div>
-    </div>
 
-    <!-- Tabs -->
-    <div class="panel-tabs">
-      <button class="panel-tab active" onclick="switchTab('hint',this)">💡 Hint</button>
-      <button class="panel-tab" onclick="switchTab('explain',this)">📖 Explain</button>
-      <button class="panel-tab" onclick="switchTab('screenshot',this)">📸 Screenshot</button>
-    </div>
-
-    <!-- Hint tab -->
-    <div class="tab-content active" id="tab-hint">
-      <div class="form-group">
-        <label class="form-label">Where are you stuck? (optional)</label>
-        <textarea class="form-textarea" id="stuck-input" placeholder="Describe what you've tried..." style="height:70px;"></textarea>
-      </div>
-      <div class="hint-btns">
-        <button class="hint-btn" onclick="getHint(1)">
-          <div class="hint-btn-label">Hint 1</div>
-          <div class="hint-btn-desc">Direction only</div>
-        </button>
-        <button class="hint-btn" onclick="getHint(2)">
-          <div class="hint-btn-label">Hint 2</div>
-          <div class="hint-btn-desc">Structure</div>
-        </button>
-        <button class="hint-btn" onclick="getHint(3)">
-          <div class="hint-btn-label">Hint 3</div>
-          <div class="hint-btn-desc">Near-solution</div>
-        </button>
-      </div>
-      <button class="btn btn-secondary" style="width:100%;margin-top:4px;" onclick="getHint(null)">➡ Next Hint</button>
-    </div>
-
-    <!-- Explain tab -->
-    <div class="tab-content" id="tab-explain">
-      <div class="form-group">
-        <label class="form-label">Concept</label>
-        <input class="form-input" id="explain-input" placeholder="e.g. dynamic programming, sliding window"/>
-      </div>
-      <button class="btn btn-primary" style="width:100%;" onclick="explainConcept()">📖 Explain</button>
-    </div>
-
-    <!-- Screenshot tab -->
-    <div class="tab-content" id="tab-screenshot">
-      <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
-        <input type="file" id="file-input" accept="image/*" onchange="handleFile(this.files[0])"/>
-        <div class="drop-icon">📸</div>
-        <div class="drop-title">Drop a screenshot here</div>
-        <div class="drop-sub">or click to browse · PNG, JPG</div>
-      </div>
-    </div>
-
-    <!-- Status bar -->
-    <div class="status-bar">
-      <div class="st-item"><span>Hints:</span><span class="st-val" id="sb-hints">0</span></div>
-      <div class="st-item"><span>Leakage:</span><span class="st-val green" id="sb-leak">0.0%</span></div>
-      <div class="st-item" id="sb-prob" style="display:none;"><span>Problem:</span><span class="st-val orange" id="sb-prob-name"></span></div>
-    </div>
-  </div>
-
-  <!-- ── RIGHT PANEL ── -->
-  <div class="panel-right">
-    <div class="output-area" id="output-area">
-
-      <!-- Welcome state -->
-      <div class="welcome" id="welcome-state">
-        <div class="welcome-icon">🧠</div>
-        <h2>Ready to tackle a problem?</h2>
-        <p>Enter a problem title on the left and click any hint button. AlgoSensei will guide you toward the answer — without giving it away.</p>
-        <div class="welcome-cards">
-          <div class="w-card"><div class="w-card-level">Hint 1</div><div class="w-card-desc">Direction only</div></div>
-          <div class="w-card"><div class="w-card-level">Hint 2</div><div class="w-card-desc">Structure hint</div></div>
-          <div class="w-card"><div class="w-card-level">Hint 3</div><div class="w-card-desc">Near-solution</div></div>
+      <!-- Problem browser (hidden by default) -->
+      <div class="prob-browser" id="prob-browser">
+        <div class="browser-search">
+          <input class="form-input" id="browser-search" placeholder="Search problems..." oninput="filterProblems()"
+            style="font-size:.8rem;flex:1;" />
+        </div>
+        <div class="browser-filters">
+          <span class="filter-pill active" onclick="setFilter('all',this)">All</span>
+          <span class="filter-pill" onclick="setFilter('blind75',this)">Blind 75</span>
+          <span class="filter-pill" onclick="setFilter('Easy',this)">Easy</span>
+          <span class="filter-pill" onclick="setFilter('Medium',this)">Medium</span>
+          <span class="filter-pill" onclick="setFilter('Hard',this)">Hard</span>
+        </div>
+        <div class="problem-list" id="problem-list">
+          <div class="loading-overlay">
+            <div class="spinner"></div> Loading...
+          </div>
         </div>
       </div>
 
-      <!-- Loading state -->
-      <div class="loading-overlay" id="loading-state" style="display:none;">
-        <div class="spinner"></div>
-        <span id="loading-msg">Generating hint...</span>
-      </div>
-
-      <!-- Hint result -->
-      <div class="hint-result" id="hint-result">
-        <div class="hint-header" id="hint-header"></div>
-        <div class="hint-body" id="hint-body"></div>
-        <button class="listen-btn" id="listen-btn" onclick="speakHint()">🔊 Listen</button>
-        <button class="sources-toggle" id="sources-toggle" onclick="toggleSources()">
-          <span id="src-count"></span> ▾ sources
-        </button>
-        <div class="sources-list" id="sources-list"></div>
-      </div>
-
-      <!-- Explain result -->
-      <div id="explain-out">
-        <div class="hint-header" id="explain-header"></div>
-        <div class="hint-body" id="explain-body"></div>
-        <button class="listen-btn" onclick="speakExplain()">🔊 Listen</button>
-        <button class="sources-toggle" onclick="toggleExplainSources()">
-          <span id="exp-src-count"></span> ▾ sources
-        </button>
-        <div class="sources-list" id="explain-sources"></div>
-      </div>
-
-      <!-- Screenshot result -->
-      <div class="screenshot-result" id="screenshot-result">
-        <div>
-          <img id="screenshot-img" class="img-preview" src="" alt="screenshot"/>
+      <!-- Tabs (only shown when browser is closed) -->
+      <div id="tab-section" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+        <div class="panel-tabs">
+          <button class="panel-tab active" onclick="switchTab('hint',this)">💡 Hint</button>
+          <button class="panel-tab" onclick="switchTab('code',this)">💻 Code</button>
+          <button class="panel-tab" onclick="switchTab('explain',this)">📖 Explain</button>
+          <button class="panel-tab" onclick="switchTab('screenshot',this)">📸 Photo</button>
         </div>
-        <div>
-          <div id="screenshot-info"></div>
-          <div class="hint-body" id="screenshot-hint" style="margin-top:12px;"></div>
+
+        <!-- Hint tab -->
+        <div class="tab-content active" id="tab-hint">
+          <div class="form-group">
+            <label class="form-label">Where are you stuck? (optional)</label>
+            <textarea class="form-textarea" id="stuck-input" placeholder="Describe your current approach..."
+              style="height:65px;"></textarea>
+          </div>
+          <div class="hint-btns">
+            <button class="hint-btn" onclick="getHint(1)">
+              <div class="hint-btn-label">Hint 1</div>
+              <div class="hint-btn-desc">Direction</div>
+            </button>
+            <button class="hint-btn" onclick="getHint(2)">
+              <div class="hint-btn-label">Hint 2</div>
+              <div class="hint-btn-desc">Structure</div>
+            </button>
+            <button class="hint-btn" onclick="getHint(3)">
+              <div class="hint-btn-label">Hint 3</div>
+              <div class="hint-btn-desc">Near-solution</div>
+            </button>
+          </div>
+          <button class="btn btn-secondary" style="width:100%;" onclick="getHint(null)">➡ Next Hint</button>
+        </div>
+
+        <!-- Code analysis tab -->
+        <div class="tab-content" id="tab-code">
+          <div class="form-group">
+            <label class="form-label">Paste your current code attempt</label>
+            <textarea class="code-editor" id="code-input"
+              placeholder="def twoSum(nums, target):&#10;    for i in range(len(nums)):&#10;        for j in range(i+1, len(nums)):&#10;            if nums[i] + nums[j] == target:&#10;                return [i, j]"></textarea>
+          </div>
+          <button class="btn btn-primary" style="width:100%;" onclick="analyzeCode()">
+            💻 Analyze My Code
+          </button>
+          <p style="font-size:.72rem;color:var(--faint);text-align:center;line-height:1.5;">
+            AlgoSensei will identify exactly where your approach breaks down — not fix it for you
+          </p>
+        </div>
+
+        <!-- Explain tab -->
+        <div class="tab-content" id="tab-explain">
+          <div class="form-group">
+            <label class="form-label">Concept to explain</label>
+            <input class="form-input" id="explain-input" placeholder="e.g. dynamic programming, sliding window" />
+          </div>
+          <button class="btn btn-primary" style="width:100%;" onclick="explainConcept()">📖 Explain</button>
+        </div>
+
+        <!-- Screenshot tab -->
+        <div class="tab-content" id="tab-screenshot">
+          <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+            <input type="file" id="file-input" accept="image/*" onchange="handleFile(this.files[0])" />
+            <div style="font-size:1.8rem;margin-bottom:8px;">📸</div>
+            <div style="font-size:.85rem;font-weight:500;margin-bottom:4px;">Drop screenshot here</div>
+            <div style="font-size:.75rem;color:var(--muted);">PNG, JPG · auto-detects problem</div>
+          </div>
+          <div id="screenshot-preview" style="display:none;margin-top:10px;">
+            <img id="screenshot-img" style="width:100%;border-radius:var(--radius);border:1px solid var(--border);"
+              src="" alt="" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Status bar -->
+      <div class="status-bar">
+        <div class="st-item">Hints:<span class="st-val" id="sb-hints">0</span></div>
+        <div class="st-item">Leak:<span class="st-val green" id="sb-leak">0.0%</span></div>
+        <div class="st-item" id="sb-prob-wrap" style="display:none;">
+          <span class="st-val orange" id="sb-prob"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RIGHT PANEL ── -->
+    <div class="panel-right">
+      <div class="output-area" id="output-area">
+
+        <!-- Welcome -->
+        <div class="welcome" id="welcome-state">
+          <div class="welcome-icon">🧠</div>
+          <h2>Ready to tackle a problem?</h2>
+          <p>Enter a problem or browse 175+ problems. Get hints, analyze your code, or upload a screenshot.</p>
+          <div class="welcome-cards">
+            <div class="w-card">
+              <div class="w-card-level">💡 Hints</div>
+              <div class="w-card-desc">3 calibrated levels</div>
+            </div>
+            <div class="w-card">
+              <div class="w-card-level">💻 Code</div>
+              <div class="w-card-desc">Analyze your attempt</div>
+            </div>
+            <div class="w-card">
+              <div class="w-card-level">📸 Photo</div>
+              <div class="w-card-desc">Full session from screenshot</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading-overlay" id="loading-state" style="display:none;">
+          <div class="spinner"></div><span id="loading-msg">Generating...</span>
+        </div>
+
+        <!-- Session tracker (shown after first hint) -->
+        <div class="session-tracker" id="session-tracker" style="display:none;">
+          <div class="session-tracker-title">
+            <span>📍</span>
+            <span id="tracker-problem">—</span>
+            <span style="margin-left:auto;font-size:.68rem;color:var(--faint);" id="tracker-count">Hint 0/3</span>
+          </div>
+          <div class="hint-progress">
+            <div class="hint-step" id="step-1"></div>
+            <div class="hint-step" id="step-2"></div>
+            <div class="hint-step" id="step-3"></div>
+          </div>
+        </div>
+
+        <!-- Hint result -->
+        <div class="result-card" id="hint-result">
+          <div class="result-header" id="hint-header"></div>
+          <div class="result-body" id="hint-body"></div>
+          <button class="listen-btn" onclick="speakCurrent()">🔊 Listen</button>
+          <button class="sources-toggle" onclick="toggleEl('sources-list')">
+            <span id="src-count">0</span> sources ▾
+          </button>
+          <div class="sources-list" id="sources-list"></div>
+        </div>
+
+        <!-- Code analysis result -->
+        <div class="result-card" id="code-result">
+          <div class="result-header" id="code-header"></div>
+          <div class="result-body code-feedback" id="code-body"></div>
+          <button class="listen-btn" onclick="speakCode()">🔊 Listen</button>
+        </div>
+
+        <!-- Explain result -->
+        <div class="result-card" id="explain-result">
+          <div class="result-header" id="explain-header"></div>
+          <div class="result-body" id="explain-body"></div>
+          <button class="listen-btn" onclick="speakExplain()">🔊 Listen</button>
+          <button class="sources-toggle" onclick="toggleEl('explain-sources')">
+            <span id="exp-src-count">0</span> sources ▾
+          </button>
+          <div class="sources-list" id="explain-sources"></div>
+        </div>
+
+        <!-- Screenshot result -->
+        <div class="result-card" id="screenshot-result">
+          <div id="screenshot-problem-info" style="margin-bottom:12px;"></div>
+          <div class="result-header" id="screenshot-header"></div>
+          <div class="result-body" id="screenshot-body"></div>
           <button class="listen-btn" onclick="speakScreenshot()">🔊 Listen</button>
+          <div
+            style="margin-top:14px;padding:10px 14px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);">
+            <p style="font-size:.75rem;color:var(--muted);margin-bottom:8px;">
+              📍 Problem locked in — continue with the Hint tab for levels 1→2→3
+            </p>
+            <div class="hint-btns">
+              <button class="hint-btn" onclick="getHint(1);switchTabByName('hint')">
+                <div class="hint-btn-label">Hint 1</div>
+                <div class="hint-btn-desc">Direction</div>
+              </button>
+              <button class="hint-btn" onclick="getHint(2);switchTabByName('hint')">
+                <div class="hint-btn-label">Hint 2</div>
+                <div class="hint-btn-desc">Structure</div>
+              </button>
+              <button class="hint-btn" onclick="getHint(3);switchTabByName('hint')">
+                <div class="hint-btn-label">Hint 3</div>
+                <div class="hint-btn-desc">Near-solution</div>
+              </button>
+            </div>
+          </div>
         </div>
+
       </div>
 
+      <!-- Chat bar -->
+      <div class="chat-bar">
+        <input class="chat-input" id="chat-input" placeholder="Ask anything about DSA..."
+          onkeydown="if(event.key==='Enter')sendChat()" />
+        <button class="chat-send" onclick="sendChat()">↑</button>
+      </div>
     </div>
 
-    <!-- Chat -->
-    <div class="chat-bar">
-      <input class="chat-input" id="chat-input" placeholder="Ask anything about DSA..."
-        onkeydown="if(event.key==='Enter')sendChat()"/>
-      <button class="chat-send" onclick="sendChat()">↑</button>
-    </div>
   </div>
 
-</div>
+  <script>
+    // ── State ──────────────────────────────────────────────────
+    let currentText = '';
+    let currentCode = '';
+    let currentExplain = '';
+    let currentScreenshot = '';
+    let sessionHints = 0;
+    let hintLevel = 0;
+    let allProblems = [];
+    let activeFilter = 'all';
+    let browserOpen = false;
 
-<script>
-// ── State ────────────────────────────────────────────────────
-let currentHint = '';
-let currentExplain = '';
-let currentScreenshot = '';
-let sessionHints = 0;
-let sessionLeakage = 0.0;
+    // ── Embedded fallback problem list (works without backend) ──
+    const FALLBACK_PROBLEMS = [
+      { id: 1, title: "Two Sum", difficulty: "Easy", pattern: "arrays_hashing", blind75: true, neetcode: true },
+      { id: 3, title: "Contains Duplicate", difficulty: "Easy", pattern: "arrays_hashing", blind75: true, neetcode: true },
+      { id: 11, title: "Group Anagrams", difficulty: "Medium", pattern: "arrays_hashing", blind75: true, neetcode: true },
+      { id: 13, title: "Top K Frequent Elements", difficulty: "Medium", pattern: "arrays_hashing", blind75: true, neetcode: true },
+      { id: 15, title: "Longest Consecutive Sequence", difficulty: "Medium", pattern: "arrays_hashing", blind75: true, neetcode: true },
+      { id: 31, title: "Valid Palindrome", difficulty: "Easy", pattern: "two_pointers", blind75: true, neetcode: true },
+      { id: 9, title: "3Sum", difficulty: "Medium", pattern: "two_pointers", blind75: true, neetcode: true },
+      { id: 10, title: "Container With Most Water", difficulty: "Medium", pattern: "two_pointers", blind75: true, neetcode: true },
+      { id: 16, title: "Trapping Rain Water", difficulty: "Hard", pattern: "two_pointers", blind75: true, neetcode: true },
+      { id: 38, title: "Longest Substring Without Repeating Characters", difficulty: "Medium", pattern: "sliding_window", blind75: true, neetcode: true },
+      { id: 39, title: "Longest Repeating Character Replacement", difficulty: "Medium", pattern: "sliding_window", blind75: true, neetcode: true },
+      { id: 40, title: "Minimum Window Substring", difficulty: "Hard", pattern: "sliding_window", blind75: true, neetcode: true },
+      { id: 47, title: "Valid Parentheses", difficulty: "Easy", pattern: "stack", blind75: true, neetcode: true },
+      { id: 48, title: "Min Stack", difficulty: "Medium", pattern: "stack", blind75: true, neetcode: true },
+      { id: 53, title: "Largest Rectangle in Histogram", difficulty: "Hard", pattern: "stack", blind75: true, neetcode: true },
+      { id: 7, title: "Find Minimum in Rotated Sorted Array", difficulty: "Medium", pattern: "binary_search", blind75: true, neetcode: true },
+      { id: 8, title: "Search in Rotated Sorted Array", difficulty: "Medium", pattern: "binary_search", blind75: true, neetcode: true },
+      { id: 61, title: "Median of Two Sorted Arrays", difficulty: "Hard", pattern: "binary_search", blind75: true, neetcode: true },
+      { id: 65, title: "Reverse Linked List", difficulty: "Easy", pattern: "linked_list", blind75: true, neetcode: true },
+      { id: 66, title: "Merge Two Sorted Lists", difficulty: "Easy", pattern: "linked_list", blind75: true, neetcode: true },
+      { id: 71, title: "Linked List Cycle", difficulty: "Easy", pattern: "linked_list", blind75: true, neetcode: true },
+      { id: 73, title: "LRU Cache", difficulty: "Medium", pattern: "linked_list", blind75: true, neetcode: true },
+      { id: 74, title: "Merge K Sorted Lists", difficulty: "Hard", pattern: "heap_priority_queue", blind75: true, neetcode: true },
+      { id: 79, title: "Invert Binary Tree", difficulty: "Easy", pattern: "trees", blind75: true, neetcode: true },
+      { id: 84, title: "Binary Tree Level Order Traversal", difficulty: "Medium", pattern: "trees", blind75: true, neetcode: true },
+      { id: 87, title: "Validate Binary Search Tree", difficulty: "Medium", pattern: "trees", blind75: true, neetcode: true },
+      { id: 91, title: "Serialize and Deserialize Binary Tree", difficulty: "Hard", pattern: "trees", blind75: true, neetcode: true },
+      { id: 96, title: "Implement Trie (Prefix Tree)", difficulty: "Medium", pattern: "tries", blind75: true, neetcode: true },
+      { id: 98, title: "Word Search II", difficulty: "Hard", pattern: "tries", blind75: true, neetcode: true },
+      { id: 107, title: "Find Median from Data Stream", difficulty: "Hard", pattern: "heap_priority_queue", blind75: true, neetcode: true },
+      { id: 110, title: "Subsets", difficulty: "Medium", pattern: "backtracking", blind75: true, neetcode: true },
+      { id: 111, title: "Combination Sum", difficulty: "Medium", pattern: "backtracking", blind75: true, neetcode: true },
+      { id: 113, title: "Permutations", difficulty: "Medium", pattern: "backtracking", blind75: true, neetcode: true },
+      { id: 115, title: "Word Search", difficulty: "Medium", pattern: "backtracking", blind75: true, neetcode: true },
+      { id: 121, title: "Number of Islands", difficulty: "Medium", pattern: "graphs", blind75: true, neetcode: true },
+      { id: 128, title: "Course Schedule", difficulty: "Medium", pattern: "graphs", blind75: true, neetcode: true },
+      { id: 138, title: "Climbing Stairs", difficulty: "Easy", pattern: "dynamic_programming_1d", blind75: true, neetcode: true },
+      { id: 140, title: "House Robber", difficulty: "Medium", pattern: "dynamic_programming_1d", blind75: true, neetcode: true },
+      { id: 145, title: "Coin Change", difficulty: "Medium", pattern: "dynamic_programming_1d", blind75: true, neetcode: true },
+      { id: 148, title: "Longest Increasing Subsequence", difficulty: "Medium", pattern: "dynamic_programming_1d", blind75: true, neetcode: true },
+      { id: 154, title: "Unique Paths", difficulty: "Medium", pattern: "dynamic_programming_2d", blind75: true, neetcode: true },
+      { id: 156, title: "Longest Common Subsequence", difficulty: "Medium", pattern: "dynamic_programming_2d", blind75: true, neetcode: true },
+      { id: 164, title: "Regular Expression Matching", difficulty: "Hard", pattern: "dynamic_programming_2d", blind75: true, neetcode: true },
+      { id: 167, title: "Merge Intervals", difficulty: "Medium", pattern: "greedy", blind75: true, neetcode: true },
+      { id: 150, title: "Jump Game", difficulty: "Medium", pattern: "greedy", blind75: true, neetcode: true },
+      { id: 30, title: "Insert Interval", difficulty: "Medium", pattern: "greedy", blind75: true, neetcode: true },
+    ];
 
-// ── Tab switching ────────────────────────────────────────────
-function switchTab(name, btn) {
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  btn.classList.add('active');
-}
-
-// ── Problem meta tags ────────────────────────────────────────
-function updateMeta() {
-  const prob = document.getElementById('problem-input').value;
-  const diff = document.getElementById('diff-select').value;
-  const pat  = document.getElementById('pattern-select');
-  const patLabel = pat.options[pat.selectedIndex].text;
-  const meta = document.getElementById('prob-meta');
-  if (!prob) { meta.innerHTML = ''; return; }
-  const diffClass = {Easy:'tag-easy',Medium:'tag-medium',Hard:'tag-hard'}[diff]||'tag-medium';
-  meta.innerHTML = `<span class="tag ${diffClass}">${diff}</span><span class="tag tag-blue">${patLabel}</span>`;
-  if (prob) {
-    document.getElementById('sb-prob').style.display = 'flex';
-    document.getElementById('sb-prob-name').textContent = prob.substring(0,20);
-  }
-}
-
-// ── Show/hide states ─────────────────────────────────────────
-function showLoading(msg) {
-  document.getElementById('welcome-state').style.display = 'none';
-  document.getElementById('loading-state').style.display = 'flex';
-  document.getElementById('loading-msg').textContent = msg || 'Generating...';
-  document.getElementById('hint-result').classList.remove('show');
-  document.getElementById('explain-out').classList.remove('show');
-  document.getElementById('screenshot-result').classList.remove('show');
-}
-function hideLoading() {
-  document.getElementById('loading-state').style.display = 'none';
-}
-function showToast(msg, type='success') {
-  let t = document.querySelector('.toast');
-  if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
-  t.className = `toast ${type}`;
-  t.innerHTML = `<span>${type === 'success' ? '✓' : '✗'}</span> ${msg}`;
-  requestAnimationFrame(() => { t.classList.add('show'); });
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
-function updateStats(hints, leakage) {
-  sessionHints = hints || sessionHints;
-  sessionLeakage = leakage !== undefined ? leakage : sessionLeakage;
-  document.getElementById('stat-hints').textContent = sessionHints;
-  document.getElementById('stat-leak').textContent = (sessionLeakage*100).toFixed(1)+'%';
-  document.getElementById('sb-hints').textContent = sessionHints;
-  const leakEl = document.getElementById('sb-leak');
-  leakEl.textContent = (sessionLeakage*100).toFixed(1)+'%';
-  leakEl.className = 'st-val ' + (sessionLeakage === 0 ? 'green' : 'orange');
-}
-
-// ── Get hint ─────────────────────────────────────────────────
-async function getHint(level) {
-  const problem = document.getElementById('problem-input').value.trim();
-  if (!problem) { showToast('Enter a problem name first', 'error'); return; }
-  showLoading(`Generating hint ${level || ''}...`);
-  try {
-    const res = await fetch('/api/hint', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        problem,
-        difficulty: document.getElementById('diff-select').value,
-        pattern: document.getElementById('pattern-select').value,
-        student_context: document.getElementById('stuck-input').value,
-        hint_level: level,
-      })
-    });
-    if (!res.ok) throw new Error(await res.text());
-    const data = await res.json();
-    hideLoading();
-    currentHint = data.response;
-    const lvl = data.hint_level;
-    const safe = data.safe;
-    document.getElementById('hint-header').innerHTML =
-      `<span class="tag tag-medium">Hint ${lvl}/3</span>` +
-      `<span class="tag ${safe?'tag-safe':'tag-medium'}">${safe?'✓ safe':'⚠ regenerated'}</span>` +
-      `<span style="font-size:.72rem;color:var(--faint);">· ${(data.sources||[]).length} sources</span>`;
-    document.getElementById('hint-body').textContent = data.response;
-    // Sources
-    const sl = document.getElementById('sources-list');
-    sl.innerHTML = (data.sources||[]).map((s,i)=>
-      `<div class="source-item"><div class="source-label">[${i+1}] ${s.label} · ${s.score}</div><div class="source-body">${s.text}</div></div>`
-    ).join('');
-    document.getElementById('src-count').textContent = (data.sources||[]).length;
-    document.getElementById('hint-result').classList.add('show');
-    document.getElementById('explain-out').classList.remove('show');
-    document.getElementById('screenshot-result').classList.remove('show');
-    updateStats(data.total_hints, data.leakage_rate);
-  } catch(e) {
-    hideLoading();
-    showToast('Error: ' + e.message, 'error');
-    document.getElementById('welcome-state').style.display = 'flex';
-  }
-}
-
-function toggleSources() {
-  const sl = document.getElementById('sources-list');
-  sl.classList.toggle('open');
-}
-function toggleExplainSources() {
-  document.getElementById('explain-sources').classList.toggle('open');
-}
-
-// ── Explain ──────────────────────────────────────────────────
-async function explainConcept() {
-  const topic = document.getElementById('explain-input').value.trim();
-  if (!topic) { showToast('Enter a concept', 'error'); return; }
-  showLoading('Retrieving from knowledge base...');
-  try {
-    const res = await fetch('/api/explain', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({topic, pattern: document.getElementById('pattern-select').value})
-    });
-    if (!res.ok) throw new Error(await res.text());
-    const data = await res.json();
-    hideLoading();
-    currentExplain = data.response;
-    document.getElementById('explain-header').innerHTML =
-      `<span class="tag tag-blue">Explainer</span>` +
-      `<span class="tag tag-safe">faithfulness: ${Math.round((data.faithfulness||0)*100)}%</span>` +
-      `<span style="font-size:.72rem;color:var(--faint);">· ${(data.sources||[]).length} sources</span>`;
-    document.getElementById('explain-body').textContent = data.response;
-    const es = document.getElementById('explain-sources');
-    es.innerHTML = (data.sources||[]).map((s,i)=>
-      `<div class="source-item"><div class="source-label">[${i+1}] ${s.label} · ${s.score}</div><div class="source-body">${s.text}</div></div>`
-    ).join('');
-    document.getElementById('exp-src-count').textContent = (data.sources||[]).length;
-    document.getElementById('explain-out').classList.add('show');
-    document.getElementById('hint-result').classList.remove('show');
-    document.getElementById('screenshot-result').classList.remove('show');
-  } catch(e) {
-    hideLoading(); showToast('Error: ' + e.message, 'error');
-    document.getElementById('welcome-state').style.display = 'flex';
-  }
-}
-
-// ── Screenshot ───────────────────────────────────────────────
-function handleFile(file) {
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    document.getElementById('screenshot-img').src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-  analyzeScreenshot(file);
-}
-
-async function analyzeScreenshot(file) {
-  showLoading('Reading screenshot...');
-  try {
-    const fd = new FormData();
-    fd.append('file', file);
-    const res = await fetch('/api/screenshot', {method:'POST', body:fd});
-    if (!res.ok) throw new Error(await res.text());
-    const data = await res.json();
-    hideLoading();
-    currentScreenshot = data.response || '';
-    if (data.success) {
-      const diffClass = {Easy:'tag-easy',Medium:'tag-medium',Hard:'tag-hard'}[data.difficulty]||'tag-medium';
-      document.getElementById('screenshot-info').innerHTML =
-        `<div style="font-size:.95rem;font-weight:600;color:var(--text);margin-bottom:8px;">${data.problem_title}</div>` +
-        `<div style="display:flex;gap:6px;flex-wrap:wrap;">` +
-        `<span class="tag ${diffClass}">${data.difficulty}</span>` +
-        `<span class="tag tag-blue">${data.pattern}</span>` +
-        `<span class="tag tag-safe">${data.confidence} confidence</span></div>`;
-      document.getElementById('screenshot-hint').textContent = data.response;
-      // update problem field
-      document.getElementById('problem-input').value = data.problem_title;
-      document.getElementById('pattern-select').value = data.pattern || '';
-      updateMeta();
-    } else {
-      document.getElementById('screenshot-info').innerHTML =
-        `<div class="tag" style="background:var(--red-dim);color:var(--red);">Could not analyze</div>`;
-      document.getElementById('screenshot-hint').textContent = data.response || 'Try the Get a Hint tab instead.';
+    // ── Init: load problems from API, fall back to embedded list ─
+    async function loadProblems() {
+      try {
+        const res = await fetch('/api/problems');
+        if (!res.ok || res.headers.get('content-type')?.includes('text/html')) {
+          throw new Error('API not available');
+        }
+        const data = await res.json();
+        allProblems = data.problems || [];
+      } catch (e) {
+        // Use fallback list when backend not running
+        allProblems = FALLBACK_PROBLEMS;
+      }
+      renderProblems(allProblems);
     }
-    document.getElementById('screenshot-result').classList.add('show');
-    document.getElementById('hint-result').classList.remove('show');
-    document.getElementById('explain-out').classList.remove('show');
-  } catch(e) {
-    hideLoading(); showToast('Error: ' + e.message, 'error');
-    document.getElementById('welcome-state').style.display = 'flex';
-  }
-}
+    loadProblems();
 
-// Drag and drop
-const dz = document.getElementById('drop-zone');
-dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
-dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
-dz.addEventListener('drop', e => {
-  e.preventDefault(); dz.classList.remove('drag');
-  const f = e.dataTransfer.files[0];
-  if (f && f.type.startsWith('image/')) handleFile(f);
-});
+    // ── Problem browser ────────────────────────────────────────
+    function toggleBrowser() {
+      browserOpen = !browserOpen;
+      document.getElementById('prob-browser').classList.toggle('open', browserOpen);
+      document.getElementById('tab-section').style.display = browserOpen ? 'none' : 'flex';
+      document.getElementById('browse-btn').style.color = browserOpen ? 'var(--orange)' : '';
+    }
 
-// ── Chat ─────────────────────────────────────────────────────
-async function sendChat() {
-  const input = document.getElementById('chat-input');
-  const msg = input.value.trim();
-  if (!msg) return;
-  input.value = '';
-  showLoading('Thinking...');
-  try {
-    const res = await fetch('/api/hint', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        problem: document.getElementById('problem-input').value || msg.substring(0,50),
-        difficulty: document.getElementById('diff-select').value,
-        pattern: document.getElementById('pattern-select').value,
-        student_context: msg,
-      })
+    function setFilter(filter, el) {
+      activeFilter = filter;
+      document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+      el.classList.add('active');
+      filterProblems();
+    }
+
+    function filterProblems() {
+      const q = document.getElementById('browser-search').value.toLowerCase();
+      let filtered = allProblems;
+      if (activeFilter === 'blind75') filtered = filtered.filter(p => p.blind75);
+      else if (['Easy', 'Medium', 'Hard'].includes(activeFilter)) filtered = filtered.filter(p => p.difficulty === activeFilter);
+      if (q) filtered = filtered.filter(p => p.title.toLowerCase().includes(q));
+      renderProblems(filtered);
+    }
+
+    function renderProblems(problems) {
+      const list = document.getElementById('problem-list');
+      if (!problems.length) { list.innerHTML = '<div style="padding:16px;text-align:center;color:var(--faint);font-size:.82rem;">No problems found</div>'; return; }
+      list.innerHTML = problems.map(p => {
+        const diffClass = { Easy: 'tag-easy', Medium: 'tag-medium', Hard: 'tag-hard' }[p.difficulty] || '';
+        return `<div class="prob-item" onclick="selectProblem(${JSON.stringify(p).replace(/"/g, '&quot;')})">
+      <div class="prob-item-title">${p.title}</div>
+      <div class="prob-item-tags">
+        <span class="tag ${diffClass}" style="font-size:.65rem;padding:2px 6px;">${p.difficulty[0]}</span>
+        ${p.blind75 ? '<span class="tag tag-blue" style="font-size:.65rem;padding:2px 6px;">B75</span>' : ''}
+      </div>
+    </div>`;
+      }).join('');
+    }
+
+    function selectProblem(p) {
+      document.getElementById('problem-input').value = p.title;
+      document.getElementById('diff-select').value = p.difficulty;
+      const patSelect = document.getElementById('pattern-select');
+      if (p.pattern) patSelect.value = p.pattern;
+      updateMeta();
+      toggleBrowser();
+      showToast(`Selected: ${p.title}`);
+    }
+
+    // ── Problem meta ───────────────────────────────────────────
+    function updateMeta() {
+      const prob = document.getElementById('problem-input').value;
+      const diff = document.getElementById('diff-select').value;
+      const patEl = document.getElementById('pattern-select');
+      const patLabel = patEl.options[patEl.selectedIndex].text;
+      const meta = document.getElementById('prob-meta');
+      if (!prob) { meta.innerHTML = ''; return; }
+      const dc = { Easy: 'tag-easy', Medium: 'tag-medium', Hard: 'tag-hard' }[diff] || 'tag-medium';
+      meta.innerHTML = `<span class="tag ${dc}">${diff}</span><span class="tag tag-blue">${patLabel}</span>`;
+      document.getElementById('sb-prob-wrap').style.display = 'flex';
+      document.getElementById('sb-prob').textContent = prob.substring(0, 22);
+    }
+
+    // ── Tab switching ──────────────────────────────────────────
+    function switchTab(name, btn) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('tab-' + name).classList.add('active');
+      btn.classList.add('active');
+    }
+    function switchTabByName(name) {
+      const tabs = document.querySelectorAll('.panel-tab');
+      const contents = ['hint', 'code', 'explain', 'screenshot'];
+      const idx = contents.indexOf(name);
+      if (idx >= 0 && tabs[idx]) switchTab(name, tabs[idx]);
+    }
+
+    // ── Loading/display helpers ────────────────────────────────
+    function showLoading(msg) {
+      document.getElementById('welcome-state').style.display = 'none';
+      document.getElementById('loading-state').style.display = 'flex';
+      document.getElementById('loading-msg').textContent = msg || 'Generating...';
+      ['hint-result', 'code-result', 'explain-result', 'screenshot-result'].forEach(id =>
+        document.getElementById(id).classList.remove('show'));
+    }
+    function hideLoading() { document.getElementById('loading-state').style.display = 'none'; }
+
+    function showResult(cardId) {
+      hideLoading();
+      ['hint-result', 'code-result', 'explain-result', 'screenshot-result'].forEach(id =>
+        document.getElementById(id).classList.toggle('show', id === cardId));
+    }
+
+    function updateStats(hints, leakage) {
+      if (hints !== undefined) sessionHints = hints;
+      document.getElementById('stat-hints').textContent = sessionHints;
+      document.getElementById('sb-hints').textContent = sessionHints;
+      if (leakage !== undefined) {
+        const pct = (leakage * 100).toFixed(1) + '%';
+        document.getElementById('stat-leak').textContent = pct;
+        document.getElementById('sb-leak').textContent = pct;
+        document.getElementById('sb-leak').className = 'st-val ' + (leakage === 0 ? 'green' : 'orange');
+      }
+    }
+
+    function updateSessionTracker(problem, level) {
+      hintLevel = level || hintLevel;
+      document.getElementById('session-tracker').style.display = 'block';
+      document.getElementById('tracker-problem').textContent = problem || document.getElementById('problem-input').value || '—';
+      document.getElementById('tracker-count').textContent = `Hint ${hintLevel}/3`;
+      [1, 2, 3].forEach(i => {
+        const el = document.getElementById('step-' + i);
+        el.className = 'hint-step' + (i < hintLevel ? ' done' : i === hintLevel ? ' current' : '');
+      });
+    }
+
+    function showToast(msg, type = 'success') {
+      let t = document.querySelector('.toast');
+      if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
+      t.className = `toast ${type}`;
+      t.textContent = msg;
+      requestAnimationFrame(() => t.classList.add('show'));
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    function toggleEl(id) { document.getElementById(id).classList.toggle('open'); }
+
+    function renderSources(sources, listId, countId) {
+      const list = document.getElementById(listId);
+      document.getElementById(countId).textContent = (sources || []).length;
+      list.innerHTML = (sources || []).map((s, i) =>
+        `<div class="source-item"><div class="source-label">[${i + 1}] ${s.label} · ${s.score}</div><div class="source-body">${s.text}</div></div>`
+      ).join('');
+    }
+
+    // ── Get hint ───────────────────────────────────────────────
+    async function getHint(level) {
+      const problem = document.getElementById('problem-input').value.trim();
+      if (!problem) { showToast('Enter a problem name first', 'error'); return; }
+      showLoading(`Generating hint ${level || (hintLevel + 1)}...`);
+      try {
+        const res = await fetch('/api/hint', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            problem, difficulty: document.getElementById('diff-select').value,
+            pattern: document.getElementById('pattern-select').value,
+            student_context: document.getElementById('stuck-input').value,
+            hint_level: level,
+          })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const d = await res.json();
+        currentText = d.response;
+        const lvl = d.hint_level || level;
+        const safe = d.safe !== false;
+        document.getElementById('hint-header').innerHTML =
+          `<span class="tag tag-medium">Hint ${lvl}/3</span>` +
+          `<span class="tag ${safe ? 'tag-safe' : 'tag-medium'}">${safe ? '✓ safe' : '⚠ regenerated'}</span>` +
+          `<span style="font-size:.7rem;color:var(--faint)">· ${(d.sources || []).length} sources</span>`;
+        document.getElementById('hint-body').textContent = d.response;
+        renderSources(d.sources || [], 'sources-list', 'src-count');
+        showResult('hint-result');
+        updateStats(d.total_hints, d.leakage_rate);
+        updateSessionTracker(problem, lvl);
+      } catch (e) { hideLoading(); showToast(e.message, 'error'); document.getElementById('welcome-state').style.display = 'flex'; }
+    }
+
+    // ── Code analysis ──────────────────────────────────────────
+    async function analyzeCode() {
+      const code = document.getElementById('code-input').value.trim();
+      const problem = document.getElementById('problem-input').value.trim();
+      if (!code) { showToast('Paste your code first', 'error'); return; }
+      if (!problem) { showToast('Enter a problem name too', 'error'); return; }
+      showLoading('Analyzing your code...');
+      try {
+        const res = await fetch('/api/analyze-code', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code, problem,
+            difficulty: document.getElementById('diff-select').value,
+            pattern: document.getElementById('pattern-select').value,
+          })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const d = await res.json();
+        currentCode = d.response;
+        document.getElementById('code-header').innerHTML =
+          `<span class="tag tag-blue">Code analysis</span>` +
+          `<span class="tag ${d.safe ? 'tag-safe' : 'tag-medium'}">${d.safe ? '✓ safe' : '⚠ regenerated'}</span>`;
+        document.getElementById('code-body').textContent = d.response;
+        showResult('code-result');
+        updateStats(d.total_hints, d.leakage_rate);
+        updateSessionTracker(problem, null);
+      } catch (e) { hideLoading(); showToast(e.message, 'error'); document.getElementById('welcome-state').style.display = 'flex'; }
+    }
+
+    // ── Explain ────────────────────────────────────────────────
+    async function explainConcept() {
+      const topic = document.getElementById('explain-input').value.trim();
+      if (!topic) { showToast('Enter a concept', 'error'); return; }
+      showLoading('Retrieving from knowledge base...');
+      try {
+        const res = await fetch('/api/explain', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topic, pattern: document.getElementById('pattern-select').value })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const d = await res.json();
+        currentExplain = d.response;
+        document.getElementById('explain-header').innerHTML =
+          `<span class="tag tag-blue">Explainer</span>` +
+          `<span class="tag tag-safe">faithfulness: ${Math.round((d.faithfulness || 0) * 100)}%</span>` +
+          `<span style="font-size:.7rem;color:var(--faint)">· ${(d.sources || []).length} sources</span>`;
+        document.getElementById('explain-body').textContent = d.response;
+        renderSources(d.sources || [], 'explain-sources', 'exp-src-count');
+        showResult('explain-result');
+      } catch (e) { hideLoading(); showToast(e.message, 'error'); document.getElementById('welcome-state').style.display = 'flex'; }
+    }
+
+    // ── Screenshot → Full Session ──────────────────────────────
+    function handleFile(file) {
+      if (!file) return;
+      document.getElementById('screenshot-preview').style.display = 'block';
+      const reader = new FileReader();
+      reader.onload = e => document.getElementById('screenshot-img').src = e.target.result;
+      reader.readAsDataURL(file);
+      analyzeScreenshot(file);
+    }
+
+    async function analyzeScreenshot(file) {
+      showLoading('Reading screenshot...');
+      try {
+        const fd = new FormData();
+        fd.append('file', file);
+        const res = await fetch('/api/screenshot', { method: 'POST', body: fd });
+        if (!res.ok) throw new Error(await res.text());
+        const d = await res.json();
+        currentScreenshot = d.response || '';
+
+        if (d.success) {
+          // Lock problem into session
+          document.getElementById('problem-input').value = d.problem_title;
+          if (d.pattern) document.getElementById('pattern-select').value = d.pattern;
+          if (d.difficulty) document.getElementById('diff-select').value = d.difficulty;
+          updateMeta();
+          hintLevel = 0; // reset hint progression for new problem
+
+          const dc = { Easy: 'tag-easy', Medium: 'tag-medium', Hard: 'tag-hard' }[d.difficulty] || 'tag-medium';
+          document.getElementById('screenshot-problem-info').innerHTML =
+            `<div style="font-size:.95rem;font-weight:600;color:var(--text);margin-bottom:8px;">${d.problem_title}</div>
+         <div style="display:flex;gap:6px;flex-wrap:wrap;">
+           <span class="tag ${dc}">${d.difficulty}</span>
+           <span class="tag tag-blue">${d.pattern}</span>
+           <span class="tag tag-safe">${d.confidence} confidence</span>
+         </div>`;
+          document.getElementById('screenshot-header').innerHTML =
+            `<span class="tag tag-medium">First hint</span><span class="tag tag-safe">✓ safe</span>`;
+          document.getElementById('screenshot-body').textContent = d.response;
+          showResult('screenshot-result');
+          updateSessionTracker(d.problem_title, 1);
+        } else {
+          document.getElementById('screenshot-problem-info').innerHTML =
+            `<div class="tag" style="background:var(--red-dim);color:var(--red);">Could not detect problem</div>`;
+          document.getElementById('screenshot-body').textContent = d.response || 'Try the Hint tab instead.';
+          document.getElementById('screenshot-header').innerHTML = '';
+          showResult('screenshot-result');
+        }
+      } catch (e) { hideLoading(); showToast(e.message, 'error'); document.getElementById('welcome-state').style.display = 'flex'; }
+    }
+
+    // Drag and drop
+    const dz = document.getElementById('drop-zone');
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+    dz.addEventListener('drop', e => {
+      e.preventDefault(); dz.classList.remove('drag');
+      const f = e.dataTransfer.files[0];
+      if (f && f.type.startsWith('image/')) handleFile(f);
     });
-    if (!res.ok) throw new Error(await res.text());
-    const data = await res.json();
-    hideLoading();
-    currentHint = data.response;
-    document.getElementById('hint-header').innerHTML =
-      `<span class="tag tag-blue">Chat response</span>` +
-      `<span class="tag ${data.safe?'tag-safe':'tag-medium'}">${data.safe?'✓ safe':'⚠ regenerated'}</span>`;
-    document.getElementById('hint-body').textContent = data.response;
-    document.getElementById('hint-result').classList.add('show');
-    document.getElementById('explain-out').classList.remove('show');
-    document.getElementById('screenshot-result').classList.remove('show');
-    updateStats(data.total_hints, data.leakage_rate);
-  } catch(e) {
-    hideLoading(); showToast(e.message, 'error');
-  }
-}
 
-// ── Audio ────────────────────────────────────────────────────
-function speakText(text) {
-  if (!('speechSynthesis' in window)) { showToast('Speech not supported in this browser', 'error'); return; }
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.rate = 0.88; u.lang = 'en-US';
-  window.speechSynthesis.speak(u);
-  showToast('Playing...', 'success');
-}
-function speakHint() { speakText(currentHint); }
-function speakExplain() { speakText(currentExplain); }
-function speakScreenshot() { speakText(currentScreenshot); }
+    // ── Chat ───────────────────────────────────────────────────
+    async function sendChat() {
+      const input = document.getElementById('chat-input');
+      const msg = input.value.trim();
+      if (!msg) return;
+      input.value = '';
+      showLoading('Thinking...');
+      try {
+        const res = await fetch('/api/hint', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            problem: document.getElementById('problem-input').value || msg.substring(0, 60),
+            difficulty: document.getElementById('diff-select').value,
+            pattern: document.getElementById('pattern-select').value,
+            student_context: msg,
+          })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const d = await res.json();
+        currentText = d.response;
+        document.getElementById('hint-header').innerHTML =
+          `<span class="tag tag-blue">Chat</span>` +
+          `<span class="tag ${d.safe ? 'tag-safe' : 'tag-medium'}">${d.safe ? '✓ safe' : '⚠'}</span>`;
+        document.getElementById('hint-body').textContent = d.response;
+        renderSources(d.sources || [], 'sources-list', 'src-count');
+        showResult('hint-result');
+        updateStats(d.total_hints, d.leakage_rate);
+      } catch (e) { hideLoading(); showToast(e.message, 'error'); }
+    }
 
-// ── Reset ────────────────────────────────────────────────────
-async function resetSession() {
-  await fetch('/api/reset', {method:'POST'});
-  sessionHints = 0; sessionLeakage = 0.0;
-  document.getElementById('problem-input').value = '';
-  document.getElementById('stuck-input').value = '';
-  document.getElementById('explain-input').value = '';
-  document.getElementById('prob-meta').innerHTML = '';
-  document.getElementById('hint-result').classList.remove('show');
-  document.getElementById('explain-out').classList.remove('show');
-  document.getElementById('screenshot-result').classList.remove('show');
-  document.getElementById('welcome-state').style.display = 'flex';
-  updateStats(0, 0);
-  showToast('Session reset');
-}
-</script>
+    // ── Audio ──────────────────────────────────────────────────
+    function speakText(text) {
+      if (!text) return;
+      if (!('speechSynthesis' in window)) { showToast('Speech not supported', 'error'); return; }
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.88; u.lang = 'en-US';
+      window.speechSynthesis.speak(u);
+    }
+    function speakCurrent() { speakText(currentText); }
+    function speakCode() { speakText(currentCode); }
+    function speakExplain() { speakText(currentExplain); }
+    function speakScreenshot() { speakText(currentScreenshot); }
+
+    // ── Reset ──────────────────────────────────────────────────
+    async function resetSession() {
+      await fetch('/api/reset', { method: 'POST' });
+      sessionHints = 0; hintLevel = 0;
+      ['problem-input', 'stuck-input', 'explain-input', 'code-input'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      document.getElementById('prob-meta').innerHTML = '';
+      document.getElementById('session-tracker').style.display = 'none';
+      document.getElementById('screenshot-preview').style.display = 'none';
+      ['hint-result', 'code-result', 'explain-result', 'screenshot-result'].forEach(id =>
+        document.getElementById(id).classList.remove('show'));
+      document.getElementById('welcome-state').style.display = 'flex';
+      updateStats(0, 0);
+      showToast('Session reset');
+    }
+  </script>
 </body>
+
 </html>

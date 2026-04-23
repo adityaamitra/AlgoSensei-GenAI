@@ -34,6 +34,7 @@ from prompts.templates import (
 
 
 
+
 def _extract_text_from_image(image_bytes: bytes) -> str:
     """
     Extract text from image using pytesseract (local OCR).
@@ -333,4 +334,46 @@ class AlgoSenseiEngine:
             "mode_counts":    self.session.mode_counts,
             "current_problem":self.session.current_problem,
             "hint_level":     self.session.hint_level,
+        }
+    def analyze_code(
+        self,
+        code: str,
+        problem_title: str = "",
+        difficulty: str = "Medium",
+        pattern: str = "",
+    ) -> dict:
+        """Analyze student code and give a targeted Socratic hint about the bottleneck."""
+        from prompts.templates import CODE_ANALYSIS_SYSTEM, CODE_ANALYSIS_PROMPT
+        from engine.gemini_client import generate_text
+        from engine.leakage_gate import check_hint, get_safe_fallback
+
+        self.session.mode_counts["code_analysis"] = (
+            self.session.mode_counts.get("code_analysis", 0) + 1
+        )
+
+        prompt = CODE_ANALYSIS_PROMPT.format(
+            problem_title=problem_title or "Unknown Problem",
+            difficulty=difficulty,
+            pattern=pattern or "unknown",
+            code=code,
+        )
+
+        try:
+            response = generate_text(prompt, system=CODE_ANALYSIS_SYSTEM)
+        except Exception as e:
+            response = f"Could not analyze code: {e}"
+
+        leakage = check_hint(response, use_semantic=False)
+        if not leakage["safe"]:
+            response = get_safe_fallback()
+            leakage = {"safe": True, "stage": "fallback"}
+
+        self.session.total_hints += 1
+        return {
+            "mode":         "code_analysis",
+            "response":     response,
+            "leakage_result": leakage,
+            "problem_title": problem_title,
+            "session_hints": self.session.total_hints,
+            "leakage_rate": round(self.session.leakage_rate, 4),
         }
