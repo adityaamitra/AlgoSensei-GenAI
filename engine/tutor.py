@@ -153,6 +153,7 @@ class AlgoSenseiEngine:
         student_context: str = "",
         hint_level:    int   = None,
         max_retries:   int   = 3,
+        previous_hints: list = None,
     ) -> dict:
         """
         Generate a Socratic hint at the given calibration level.
@@ -180,11 +181,18 @@ class AlgoSenseiEngine:
 
         while not leakage_result["safe"] and attempt < max_retries:
             attempt += 1
+            # Build context string including previous hints
+            ctx = student_context or "Not provided"
+            if previous_hints:
+                ctx += "\n\nPrevious hints already shown (build on these, do NOT repeat):\n"
+                for i, h in enumerate(previous_hints, 1):
+                    ctx += f"  Hint {i}: {h[:200]}\n"
+
             prompt = SOCRATIC_HINT_PROMPT.format(
                 problem_title=problem_title,
                 difficulty=difficulty,
                 pattern=pattern,
-                student_context=student_context or "Not provided",
+                student_context=ctx,
                 context=context,
                 hint_level=hint_level,
                 hint_level_guidance=guidance,

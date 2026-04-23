@@ -46,6 +46,7 @@ class HintReq(BaseModel):
     pattern: str = ""
     student_context: str = ""
     hint_level: Optional[int] = None
+    previous_hints: list[str] = []
 
 class ExplainReq(BaseModel):
     topic: str
@@ -79,6 +80,7 @@ def hint(req: HintReq):
             pattern=req.pattern,
             student_context=req.student_context,
             hint_level=req.hint_level,
+            previous_hints=req.previous_hints,
         )
         return {
             "response":     result.get("response",""),

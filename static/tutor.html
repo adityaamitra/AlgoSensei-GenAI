@@ -901,6 +901,7 @@
     let allProblems = [];
     let activeFilter = 'all';
     let browserOpen = false;
+    let hintHistory = [];  // stores previous hints for context
 
     // ── Embedded fallback problem list (works without backend) ──
     const FALLBACK_PROBLEMS = [
@@ -1015,6 +1016,7 @@
       if (p.pattern) patSelect.value = p.pattern;
       updateMeta();
       toggleBrowser();
+      hintHistory = [];  // clear history for new problem
       showToast(`Selected: ${p.title}`);
     }
 
@@ -1122,11 +1124,13 @@
             pattern: document.getElementById('pattern-select').value,
             student_context: document.getElementById('stuck-input').value,
             hint_level: level,
+            previous_hints: hintHistory,
           })
         });
         if (!res.ok) throw new Error(await res.text());
         const d = await res.json();
         currentText = d.response;
+        hintHistory.push(d.response);  // remember for next hint
         const lvl = d.hint_level || level;
         const safe = d.safe !== false;
         document.getElementById('hint-header').innerHTML =
@@ -1331,21 +1335,37 @@
 
     // ── Auth ──────────────────────────────────────────────────
     var AS_TOKEN = localStorage.getItem('as_token');
-    var AS_USER = (function () { try { return JSON.parse(localStorage.getItem('as_user') || '{}'); } catch (e) { return {}; } })();
+    var AS_USER = (function () {
+      try { return JSON.parse(localStorage.getItem('as_user') || '{}'); }
+      catch (e) { return {}; }
+    })();
 
     function initAuth() {
       var navAuth = document.getElementById('nav-auth');
-      if (!navAuth) { setTimeout(initAuth, 50); return; }
+      if (!navAuth) return;
       if (AS_TOKEN && AS_USER && AS_USER.username) {
-        navAuth.innerHTML = '<a href="/dashboard" class="btn btn-ghost btn-sm" style="margin-right:4px;">👤 ' + AS_USER.username + '</a>';
+        navAuth.innerHTML =
+          '<a href="/dashboard" class="btn btn-ghost btn-sm" style="margin-right:4px;">👤 ' +
+          AS_USER.username + '</a>' +
+          '<button class="btn btn-ghost btn-sm" onclick="logout()" style="color:var(--faint);font-size:.75rem;">Sign out</button>';
         var dl = document.getElementById('dash-link');
         if (dl) dl.style.display = '';
       } else {
         navAuth.innerHTML = '<a href="/login" class="btn btn-primary btn-sm">Sign in</a>';
       }
     }
-    // Run after DOM is ready
-    setTimeout(initAuth, 0);
+
+    function logout() {
+      localStorage.removeItem('as_token');
+      localStorage.removeItem('as_user');
+      AS_TOKEN = null;
+      AS_USER = {};
+      initAuth();
+      showToast('Signed out');
+    }
+
+    // Run on window load (guaranteed DOM ready)
+    window.addEventListener('load', initAuth);
 
     async function markSolved() {
       const problem = document.getElementById('problem-input').value.trim();
@@ -1383,7 +1403,7 @@
     // ── Reset ──────────────────────────────────────────────────
     async function resetSession() {
       await fetch('/api/reset', { method: 'POST' });
-      sessionHints = 0; hintLevel = 0;
+      sessionHints = 0; hintLevel = 0; hintHistory = [];
       ['problem-input', 'stuck-input', 'explain-input', 'code-input'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
