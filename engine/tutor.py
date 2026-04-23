@@ -33,6 +33,39 @@ from prompts.templates import (
 )
 
 
+
+def _extract_text_from_image(image_bytes: bytes) -> str:
+    """
+    Extract text from image using pytesseract (local OCR).
+    Falls back to vision API if tesseract not installed.
+    """
+    from PIL import Image
+    import io
+
+    # Try pytesseract first (local, free, no API needed)
+    try:
+        import pytesseract
+        image = Image.open(io.BytesIO(image_bytes))
+        # Convert to RGB if needed
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+        text = pytesseract.image_to_string(image)
+        if text and len(text.strip()) > 20:
+            return text.strip()
+    except (ImportError, Exception):
+        pass
+
+    # Fall back to vision API
+    try:
+        vision_prompt = (
+            "Read this LeetCode problem screenshot. "
+            "Extract the problem title, difficulty, and description as plain text."
+        )
+        return analyze_image(image_bytes, vision_prompt, "")
+    except Exception as e:
+        return ""
+
+
 class TutoringSession:
     """
     Maintains state for one student's tutoring session.
@@ -186,49 +219,78 @@ class AlgoSenseiEngine:
 
     def analyze_screenshot(self, image_bytes: bytes) -> dict:
         """
-        Use Gemini vision to identify the problem and pattern from a screenshot.
-        Returns structured problem info + first direction hint.
+        Two-step screenshot analysis:
+        Step 1: Vision model reads raw text from image
+        Step 2: Text model extracts structured info + first hint
         """
         self.session.mode_counts["screenshot"] += 1
-        try:
-            raw   = analyze_image(image_bytes, "Analyze this LeetCode problem screenshot.", SCREENSHOT_SYSTEM)
-            # Strip markdown fences
-            import re
-            raw = re.sub(r"```json\s*", "", raw)
-            raw = re.sub(r"```\s*", "", raw).strip()
-            info  = json.loads(raw)
-        except Exception as e:
+
+        # Extract text from image using pytesseract if available,
+        # otherwise fall back to vision API
+        raw_text = _extract_text_from_image(image_bytes)
+        if not raw_text or len(raw_text) < 20:
             return {
-                "mode":     "screenshot",
-                "success":  False,
+                "mode": "screenshot", "success": False,
                 "response": SCREENSHOT_FALLBACK,
-                "error":    str(e),
+                "error": "Could not extract text from image. Try the Get a Hint tab instead.",
             }
 
-        # Update session with detected problem
+        extract_prompt = (
+            "Given this text from a LeetCode screenshot:\n\n"
+            + raw_text
+            + "\n\nReturn ONLY valid JSON with these exact keys:\n"
+            + '{"problem_title":"name","difficulty":"Easy|Medium|Hard",'
+            + '"pattern":"arrays_hashing|two_pointers|sliding_window|stack|binary_search|linked_list|trees|tries|heap_priority_queue|backtracking|graphs|dynamic_programming_1d|dynamic_programming_2d|greedy",'
+            + '"key_constraints":["c1","c2"],'
+            + '"pattern_confidence":"high|medium|low",'
+            + '"first_hint_direction":"one sentence hint without naming the algorithm"}'
+        )
+
+        try:
+            info = generate_json(extract_prompt)
+        except Exception:
+            info = {}
+
+        if not info or "problem_title" not in info:
+            title = "Unknown Problem"
+            for line in raw_text.splitlines():
+                line = line.strip().lstrip("0123456789. ")
+                if line and 3 < len(line) < 60:
+                    title = line
+                    break
+            info = {
+                "problem_title": title,
+                "difficulty": "Medium",
+                "pattern": "arrays_hashing",
+                "key_constraints": [],
+                "pattern_confidence": "low",
+                "first_hint_direction": (
+                    "What do you notice about the input and what the problem is asking you to find?"
+                ),
+            }
+
         self.session.current_problem = info.get("problem_title", "Unknown")
         self.session.current_pattern = info.get("pattern", "")
         self.session.hint_level      = 0
 
-        # Get first Socratic hint using the detected info
-        first_hint = info.get("first_hint_direction", "")
-        leakage    = check_hint(first_hint)
+        first_hint = info.get("first_hint_direction") or get_safe_fallback()
+        leakage    = check_hint(first_hint, use_semantic=False)
         if not leakage["safe"]:
             first_hint = get_safe_fallback()
+            leakage    = {"safe": True, "stage": "fallback"}
 
         return {
-            "mode":          "screenshot",
-            "success":       True,
-            "problem_title": info.get("problem_title", "Unknown"),
-            "difficulty":    info.get("difficulty", "Unknown"),
-            "pattern":       info.get("pattern", ""),
-            "constraints":   info.get("key_constraints", []),
-            "confidence":    info.get("pattern_confidence", "medium"),
-            "response":      first_hint,
+            "mode":           "screenshot",
+            "success":        True,
+            "problem_title":  info.get("problem_title", "Unknown"),
+            "difficulty":     info.get("difficulty", "Unknown"),
+            "pattern":        info.get("pattern", ""),
+            "constraints":    info.get("key_constraints", []),
+            "confidence":     info.get("pattern_confidence", "medium"),
+            "response":       first_hint,
             "leakage_result": leakage,
+            "raw_text":       raw_text[:200],
         }
-
-    # ── Respond (unified entry point) ─────────────────────────
 
     def respond(
         self,

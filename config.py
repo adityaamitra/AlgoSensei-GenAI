@@ -13,19 +13,27 @@ except ImportError:
 # ── OpenRouter (replaces Gemini direct API) ───────────────────
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 
-# Models on OpenRouter (free tier available):
-#   "google/gemini-flash-1.5"              ← default, reliable
+# Confirmed working free models on OpenRouter:
+#   "qwen/qwen-2.5-7b-instruct:free"       ← default, good for coding
 #   "meta-llama/llama-3.1-8b-instruct:free"
 #   "mistralai/mistral-7b-instruct:free"
+#   "google/gemma-2-9b-it:free"
 OPENROUTER_MODEL   = os.environ.get(
     "OPENROUTER_MODEL",
-    "google/gemini-flash-1.5"
+    "qwen/qwen-2.5-7b-instruct:free"
+)
+
+# Separate vision model for screenshot analysis (must support image input)
+# meta-llama/llama-3.2-11b-vision-instruct:free supports images
+OPENROUTER_VISION_MODEL = os.environ.get(
+    "OPENROUTER_VISION_MODEL",
+    "qwen/qwen2-vl-7b-instruct:free"
 )
 
 # Keep these for backwards compatibility
 GEMINI_API_KEY      = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_MODEL        = OPENROUTER_MODEL
-GEMINI_VISION_MODEL = OPENROUTER_MODEL
+GEMINI_VISION_MODEL = OPENROUTER_VISION_MODEL
 
 # ── Qdrant ────────────────────────────────────────────────────
 QDRANT_URL      = os.environ.get("QDRANT_URL", "")

@@ -102,8 +102,9 @@ def analyze_image(image_bytes: bytes, prompt: str, system: str = "") -> str:
         {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}},
     ]})
 
+    from config import OPENROUTER_VISION_MODEL
     result = _post({
-        "model":      OPENROUTER_MODEL,
+        "model":      OPENROUTER_VISION_MODEL,
         "messages":   messages,
         "temperature": 0.1,
         "max_tokens":  512,

@@ -413,7 +413,7 @@ Run `python scripts/setup_qdrant.py` once to build the knowledge base, then `str
         if uploaded:
             col_img, col_res = st.columns([1,1])
             with col_img:
-                st.image(uploaded, use_column_width=True)
+                st.image(uploaded, use_container_width=True)
             with col_res:
                 with st.spinner("Analyzing with Gemini Vision..."):
                     engine = get_engine()
@@ -425,6 +425,9 @@ Run `python scripts/setup_qdrant.py` once to build the knowledge base, then `str
                     if result.get("constraints"):
                         for c in result["constraints"]:
                             st.caption(f"• {c}")
+                    if result.get("raw_text"):
+                        with st.expander("📄 Vision model read"):
+                            st.caption(result["raw_text"])
                     st.markdown("---")
                     st.markdown(f'<div class="hint-box">{result["response"]}</div>',
                                 unsafe_allow_html=True)
@@ -434,6 +437,8 @@ Run `python scripts/setup_qdrant.py` once to build the knowledge base, then `str
                     st.session_state.pattern = result["pattern"]
                 else:
                     st.warning(result.get("response","Could not analyze screenshot."))
+                    if result.get("error"):
+                        st.error(f"Error: {result['error']}")
                     st.caption("Try switching to the 'Get a Hint' tab and entering the problem manually.")
 
     st.divider()
