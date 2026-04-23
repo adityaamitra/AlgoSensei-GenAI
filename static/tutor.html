@@ -596,12 +596,14 @@
     <div class="nav-links">
       <a href="/" class="nav-link">Home</a>
       <a href="/tutor" class="nav-link active">Tutor</a>
+      <a href="/dashboard" class="nav-link" id="dash-link" style="display:none;">Dashboard</a>
     </div>
     <div class="nav-right">
       <div class="nav-stat">
         <span class="dot dot-green"></span>
         Hints: <b id="stat-hints">0</b>&nbsp;|&nbsp;Leakage: <b id="stat-leak">0.0%</b>
       </div>
+      <div id="nav-auth"></div>
       <button class="btn btn-ghost btn-sm" onclick="resetSession()">↺ Reset</button>
     </div>
   </nav>
@@ -699,6 +701,9 @@
             </button>
           </div>
           <button class="btn btn-secondary" style="width:100%;" onclick="getHint(null)">➡ Next Hint</button>
+          <button class="btn btn-secondary" id="mark-solved-btn"
+            style="width:100%;margin-top:6px;display:none;background:rgba(44,187,93,.1);border-color:rgba(44,187,93,.3);color:#2CBB5D;"
+            onclick="markSolved()">✓ Mark as Solved</button>
         </div>
 
         <!-- Code analysis tab -->
@@ -736,6 +741,28 @@
           <div id="screenshot-preview" style="display:none;margin-top:10px;">
             <img id="screenshot-img" style="width:100%;border-radius:var(--radius);border:1px solid var(--border);"
               src="" alt="" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress panel (shown when logged in) -->
+      <div id="progress-panel"
+        style="display:none;padding:10px 14px;border-top:1px solid var(--border);background:var(--bg);">
+        <div
+          style="font-size:.68rem;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">
+          Your progress</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <div style="text-align:center;">
+            <div style="font-size:1.1rem;font-weight:700;color:var(--orange);" id="prog-solved">0</div>
+            <div style="font-size:.65rem;color:var(--faint);">Solved</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:1.1rem;font-weight:700;color:var(--text);" id="prog-attempted">0</div>
+            <div style="font-size:.65rem;color:var(--faint);">Attempted</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:1.1rem;font-weight:700;color:var(--blue);" id="prog-streak">0</div>
+            <div style="font-size:.65rem;color:var(--faint);">Day streak</div>
           </div>
         </div>
       </div>
@@ -998,7 +1025,12 @@
       const patEl = document.getElementById('pattern-select');
       const patLabel = patEl.options[patEl.selectedIndex].text;
       const meta = document.getElementById('prob-meta');
-      if (!prob) { meta.innerHTML = ''; return; }
+      if (!prob) {
+        meta.innerHTML = '';
+        document.getElementById('mark-solved-btn').style.display = 'none';
+        return;
+      }
+      document.getElementById('mark-solved-btn').style.display = 'block';
       const dc = { Easy: 'tag-easy', Medium: 'tag-medium', Hard: 'tag-hard' }[diff] || 'tag-medium';
       meta.innerHTML = `<span class="tag ${dc}">${diff}</span><span class="tag tag-blue">${patLabel}</span>`;
       document.getElementById('sb-prob-wrap').style.display = 'flex';
@@ -1107,6 +1139,21 @@
         showResult('hint-result');
         updateStats(d.total_hints, d.leakage_rate);
         updateSessionTracker(problem, lvl);
+        showMarkSolved();
+        // Save hint attempt to backend if logged in
+        if (AS_TOKEN) {
+          var prob_id = (allProblems.find(p => p.title.toLowerCase() === problem.toLowerCase()) || {}).id || 0;
+          fetch('/api/auth/progress', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AS_TOKEN },
+            body: JSON.stringify({
+              problem_id: prob_id, problem_title: problem,
+              pattern: document.getElementById('pattern-select').value,
+              difficulty: document.getElementById('diff-select').value,
+              status: 'attempted', hints_used: sessionHints
+            })
+          }).catch(function () { });
+        }
       } catch (e) { hideLoading(); showToast(e.message, 'error'); document.getElementById('welcome-state').style.display = 'flex'; }
     }
 
@@ -1282,6 +1329,57 @@
     function speakExplain() { speakText(currentExplain); }
     function speakScreenshot() { speakText(currentScreenshot); }
 
+    // ── Auth ──────────────────────────────────────────────────
+    var AS_TOKEN = localStorage.getItem('as_token');
+    var AS_USER = (function () { try { return JSON.parse(localStorage.getItem('as_user') || '{}'); } catch (e) { return {}; } })();
+
+    function initAuth() {
+      var navAuth = document.getElementById('nav-auth');
+      if (!navAuth) { setTimeout(initAuth, 50); return; }
+      if (AS_TOKEN && AS_USER && AS_USER.username) {
+        navAuth.innerHTML = '<a href="/dashboard" class="btn btn-ghost btn-sm" style="margin-right:4px;">👤 ' + AS_USER.username + '</a>';
+        var dl = document.getElementById('dash-link');
+        if (dl) dl.style.display = '';
+      } else {
+        navAuth.innerHTML = '<a href="/login" class="btn btn-primary btn-sm">Sign in</a>';
+      }
+    }
+    // Run after DOM is ready
+    setTimeout(initAuth, 0);
+
+    async function markSolved() {
+      const problem = document.getElementById('problem-input').value.trim();
+      if (!problem) { showToast('Enter a problem name first', 'error'); return; }
+      const prob_id = allProblems.find(p => p.title.toLowerCase() === problem.toLowerCase())?.id || 0;
+      const pattern = document.getElementById('pattern-select').value;
+      const diff = document.getElementById('diff-select').value;
+
+      if (AS_TOKEN) {
+        try {
+          await fetch('/api/auth/progress', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${AS_TOKEN}` },
+            body: JSON.stringify({
+              problem_id: prob_id, problem_title: problem,
+              pattern, difficulty: diff, status: 'solved',
+              hints_used: sessionHints,
+            })
+          });
+        } catch (e) { console.error('Progress save failed:', e); }
+      }
+
+      // Always show visual feedback regardless of auth
+      const btn = document.getElementById('mark-solved-btn');
+      btn.textContent = '✓ Solved!';
+      btn.style.background = 'rgba(44,187,93,.2)';
+      showToast(`✓ ${problem} marked as solved!`, 'success');
+      setTimeout(() => { btn.textContent = '✓ Mark as Solved'; btn.style.background = 'rgba(44,187,93,.1)'; }, 3000);
+    }
+
+    function showMarkSolved() {
+      document.getElementById('mark-solved-btn').style.display = 'block';
+    }
+
     // ── Reset ──────────────────────────────────────────────────
     async function resetSession() {
       await fetch('/api/reset', { method: 'POST' });
@@ -1291,6 +1389,10 @@
         if (el) el.value = '';
       });
       document.getElementById('prob-meta').innerHTML = '';
+      document.getElementById('solved-btn').style.display = 'none';
+      document.getElementById('solved-btn').disabled = false;
+      document.getElementById('solved-btn').textContent = '✓ Mark as Solved';
+      currentProblemHints = 0;
       document.getElementById('session-tracker').style.display = 'none';
       document.getElementById('screenshot-preview').style.display = 'none';
       ['hint-result', 'code-result', 'explain-result', 'screenshot-result'].forEach(id =>

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>AlgoSensei — Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    body {
+      padding-top: var(--nav-h);
+      background: var(--bg);
+    }
+
+    .dash {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 32px 20px;
+    }
+
+    .dash-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .dash-greeting h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .dash-greeting p {
+      font-size: .88rem;
+      color: var(--muted);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--orange);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .progress-section {
+      margin-bottom: 32px;
+    }
+
+    .section-title {
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--orange);
+      margin-bottom: 14px;
+    }
+
+    .progress-bar-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      margin-bottom: 12px;
+    }
+
+    .progress-bar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .progress-bar-title {
+      font-size: .88rem;
+      font-weight: 500;
+    }
+
+    .progress-bar-pct {
+      font-size: .82rem;
+      color: var(--orange);
+      font-weight: 600;
+    }
+
+    .progress-bar {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--orange);
+      border-radius: 3px;
+      transition: width .5s ease;
+    }
+
+    .problem-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 8px;
+    }
+
+    .prob-badge {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      font-size: .8rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .prob-badge.solved {
+      border-color: rgba(44, 187, 93, .3);
+      background: rgba(44, 187, 93, .05);
+    }
+
+    .prob-badge-icon {
+      font-size: .9rem;
+      flex-shrink: 0;
+    }
+
+    .prob-badge-title {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text);
+    }
+
+    .prob-badge-diff {
+      font-size: .65rem;
+      padding: 1px 5px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+    }
+
+    .empty-icon {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+    }
+
+    .empty-title {
+      font-size: .95rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .empty-desc {
+      font-size: .82rem;
+      margin-bottom: 16px;
+    }
+
+    .logout-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: var(--radius);
+      padding: 7px 14px;
+      font-size: .82rem;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .logout-btn:hover {
+      border-color: var(--red);
+      color: var(--red);
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <a class="nav-logo" href="/">🧠 <span>AlgoSensei</span></a>
+    <div class="nav-links">
+      <a href="/tutor" class="nav-link">Tutor</a>
+      <a href="/dashboard" class="nav-link active">Dashboard</a>
+    </div>
+    <div class="nav-right">
+      <span id="nav-user" style="font-size:.82rem;color:var(--muted);"></span>
+      <button class="logout-btn" onclick="logout()">Sign out</button>
+    </div>
+  </nav>
+
+  <div class="dash">
+    <div class="dash-header">
+      <div class="dash-greeting">
+        <h1 id="greeting">Welcome back!</h1>
+        <p id="sub-greeting">Here's your DSA progress</p>
+      </div>
+      <a href="/tutor" class="btn btn-primary">Continue practicing →</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-solved">0</div>
+        <div class="stat-label">Problems solved</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-attempted">0</div>
+        <div class="stat-label">Attempted</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-blind75">0/75</div>
+        <div class="stat-label">Blind 75</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-streak">0</div>
+        <div class="stat-label">Day streak</div>
+      </div>
+    </div>
+
+    <!-- Pattern progress -->
+    <div class="progress-section">
+      <div class="section-title">Progress by pattern</div>
+      <div id="pattern-progress">
+        <div class="empty-state" style="padding:20px;">
+          <div class="spinner" style="margin:0 auto 10px;"></div>
+          Loading...
+        </div>
+      </div>
+    </div>
+
+    <!-- Solved problems -->
+    <div class="progress-section">
+      <div class="section-title">Solved problems</div>
+      <div id="solved-list">
+        <div class="empty-state">
+          <div class="empty-icon">🎯</div>
+          <div class="empty-title">No solved problems yet</div>
+          <div class="empty-desc">Go to the Tutor and click "Mark Solved" after completing a problem</div>
+          <a href="/tutor" class="btn btn-primary btn-sm">Start solving</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const PATTERNS = {
+      arrays_hashing: 'Arrays & Hashing', two_pointers: 'Two Pointers',
+      sliding_window: 'Sliding Window', stack: 'Stack', binary_search: 'Binary Search',
+      linked_list: 'Linked List', trees: 'Trees', tries: 'Tries',
+      heap_priority_queue: 'Heap/PQ', backtracking: 'Backtracking',
+      graphs: 'Graphs', dynamic_programming_1d: 'DP 1D',
+      dynamic_programming_2d: 'DP 2D', greedy: 'Greedy'
+    };
+
+    // Check auth
+    var token = localStorage.getItem('as_token');
+    var userStr = localStorage.getItem('as_user');
+    if (!token) { window.location.href = '/login'; }
+
+    var user = {};
+    try { user = JSON.parse(userStr || '{}'); } catch (e) { }
+
+    document.getElementById('nav-user').textContent = user.username || '';
+    document.getElementById('greeting').textContent = `Welcome back, ${user.username || 'there'}!`;
+
+    async function loadDashboard() {
+      try {
+        const res = await fetch('/api/auth/progress', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.status === 401) { logout(); return; }
+        const data = await res.json();
+        renderStats(data);
+        renderPatternProgress(data.solved || []);
+        renderSolved(data.solved || []);
+      } catch (e) {
+        console.error('Failed to load progress:', e);
+      }
+    }
+
+    function renderStats(data) {
+      const solved = data.solved || [];
+      const attempted = data.attempted || [];
+      document.getElementById('stat-solved').textContent = solved.length;
+      document.getElementById('stat-attempted').textContent = attempted.length + solved.length;
+      const b75 = solved.filter(p => p.problem_id <= 81).length;
+      document.getElementById('stat-blind75').textContent = `${b75}/75`;
+    }
+
+    function renderPatternProgress(solved) {
+      const el = document.getElementById('pattern-progress');
+      const byPattern = {};
+      solved.forEach(p => {
+        if (!byPattern[p.pattern]) byPattern[p.pattern] = 0;
+        byPattern[p.pattern]++;
+      });
+
+      // Counts from full DB (approx per pattern)
+      const totals = {
+        arrays_hashing: 21, two_pointers: 7, sliding_window: 9, stack: 10,
+        binary_search: 8, linked_list: 14, trees: 17, tries: 5,
+        heap_priority_queue: 9, backtracking: 11, graphs: 17,
+        dynamic_programming_1d: 16, dynamic_programming_2d: 13, greedy: 9
+      };
+
+      const html = Object.entries(totals).map(([pat, total]) => {
+        const done = byPattern[pat] || 0;
+        const pct = Math.round((done / total) * 100);
+        return `<div class="progress-bar-wrap">
+      <div class="progress-bar-header">
+        <span class="progress-bar-title">${PATTERNS[pat]}</span>
+        <span class="progress-bar-pct">${done}/${total}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+    </div>`;
+      }).join('');
+      el.innerHTML = html || '<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">No progress yet</div><div class="empty-desc">Solve problems in the Tutor to see pattern breakdown</div></div>';
+    }
+
+    function renderSolved(solved) {
+      const el = document.getElementById('solved-list');
+      if (!solved.length) return;
+      const dc = { Easy: 'tag-easy', Medium: 'tag-medium', Hard: 'tag-hard' };
+      el.innerHTML = `<div class="problem-grid">` +
+        solved.map(p => `
+      <div class="prob-badge solved">
+        <span class="prob-badge-icon">✓</span>
+        <span class="prob-badge-title" title="${p.problem_title}">${p.problem_title}</span>
+        <span class="tag ${dc[p.difficulty] || 'tag-medium'} prob-badge-diff">${(p.difficulty || 'M')[0]}</span>
+      </div>`
+        ).join('') + '</div>';
+    }
+
+    function logout() {
+      localStorage.removeItem('as_token');
+      localStorage.removeItem('as_user');
+      window.location.href = '/login';
+    }
+
+    loadDashboard();
+  </script>
+</body>
+
+</html>

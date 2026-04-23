@@ -7,3 +7,5 @@ Pillow>=10.0.0
 numpy>=1.24.0
 tqdm>=4.65.0
 pytesseract>=0.3.10
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4

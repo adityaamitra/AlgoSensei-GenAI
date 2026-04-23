@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AlgoSensei — Create Account</title>
+<link rel="stylesheet" href="/static/style.css"/>
+<style>
+body{padding-top:var(--nav-h);min-height:100vh;display:flex;flex-direction:column;}
+.auth-shell{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px;}
+.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:40px 36px;width:100%;max-width:420px;}
+.auth-logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:28px;}
+.auth-logo-icon{font-size:2rem;}
+.auth-logo-text{font-size:1.4rem;font-weight:800;color:var(--text);}
+.auth-logo-accent{color:var(--orange);}
+.auth-title{font-size:1.2rem;font-weight:700;text-align:center;margin-bottom:6px;}
+.auth-sub{font-size:.85rem;color:var(--muted);text-align:center;margin-bottom:28px;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:.8rem;font-weight:500;color:var(--muted);margin-bottom:6px;}
+.form-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:var(--radius);padding:10px 14px;font-size:.9rem;transition:border-color .15s;}
+.form-input:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,161,22,.12);}
+.btn-auth{width:100%;background:var(--orange);color:#1A1A1A;border:none;border-radius:var(--radius);padding:11px;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s;margin-top:4px;}
+.btn-auth:hover{background:#FFB84D;transform:translateY(-1px);}
+.btn-auth:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.auth-footer{text-align:center;margin-top:20px;font-size:.85rem;color:var(--muted);}
+.auth-footer a{color:var(--orange);text-decoration:none;font-weight:500;}
+.error-msg{background:rgba(255,55,95,.1);border:1px solid rgba(255,55,95,.2);color:#FF375F;border-radius:var(--radius);padding:10px 14px;font-size:.82rem;margin-bottom:16px;display:none;}
+.success-msg{background:rgba(44,187,93,.1);border:1px solid rgba(44,187,93,.2);color:#2CBB5D;border-radius:var(--radius);padding:10px 14px;font-size:.82rem;margin-bottom:16px;display:none;}
+.perks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:24px;}
+.perk{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;font-size:.78rem;}
+.perk-icon{font-size:1.1rem;margin-bottom:4px;}
+.perk-text{color:var(--muted);}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-logo" href="/">🧠 <span>AlgoSensei</span></a>
+  <div class="nav-right">
+    <a href="/login" class="btn btn-ghost btn-sm">Sign in</a>
+  </div>
+</nav>
+
+<div class="auth-shell">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span class="auth-logo-icon">🧠</span>
+      <span class="auth-logo-text">Algo<span class="auth-logo-accent">Sensei</span></span>
+    </div>
+    <h1 class="auth-title">Start mastering DSA</h1>
+    <p class="auth-sub">Free account — no credit card needed</p>
+
+    <div class="perks">
+      <div class="perk"><div class="perk-icon">📊</div><div class="perk-text">Track progress across 175+ problems</div></div>
+      <div class="perk"><div class="perk-icon">🎯</div><div class="perk-text">See which patterns need work</div></div>
+      <div class="perk"><div class="perk-icon">💡</div><div class="perk-text">Hint history saved</div></div>
+      <div class="perk"><div class="perk-icon">🔒</div><div class="perk-text">Private — only you see your data</div></div>
+    </div>
+
+    <div class="error-msg" id="error-msg"></div>
+    <div class="success-msg" id="success-msg"></div>
+
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <input class="form-input" type="text" id="username" placeholder="e.g. aditya_dev" autocomplete="username"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" type="email" id="email" placeholder="you@example.com" autocomplete="email"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password <span style="color:var(--faint);font-size:.72rem;">(min 6 characters)</span></label>
+      <input class="form-input" type="password" id="password" placeholder="Create a password"
+        autocomplete="new-password" onkeydown="if(event.key==='Enter')signup()"/>
+    </div>
+
+    <button class="btn-auth" id="signup-btn" onclick="signup()">Create free account</button>
+
+    <div class="auth-footer">
+      Already have an account? <a href="/login">Sign in</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('as_token');
+if (token) window.location.href = '/tutor';
+
+async function signup() {
+  const username = document.getElementById('username').value.trim();
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn      = document.getElementById('signup-btn');
+
+  document.getElementById('error-msg').style.display   = 'none';
+  document.getElementById('success-msg').style.display = 'none';
+
+  if (!username || !email || !password) { showError('Please fill in all fields'); return; }
+  if (password.length < 6) { showError('Password must be at least 6 characters'); return; }
+
+  btn.disabled = true; btn.textContent = 'Creating account...';
+
+  try {
+    const res = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({username, email, password})
+    });
+    const data = await res.json();
+    if (!res.ok) { showError(data.detail || 'Signup failed'); return; }
+    localStorage.setItem('as_token', data.token);
+    localStorage.setItem('as_user', JSON.stringify({username: data.username, email: data.email}));
+    document.getElementById('success-msg').textContent = `Welcome, ${data.username}! Redirecting...`;
+    document.getElementById('success-msg').style.display = 'block';
+    setTimeout(() => window.location.href = '/tutor', 1000);
+  } catch(e) {
+    showError('Connection error — is the server running?');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Create free account';
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg; el.style.display = 'block';
+}
+</script>
+</body>
+</html>

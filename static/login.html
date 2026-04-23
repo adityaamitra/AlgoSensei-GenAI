@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AlgoSensei — Sign In</title>
+<link rel="stylesheet" href="/static/style.css"/>
+<style>
+body{padding-top:var(--nav-h);min-height:100vh;display:flex;flex-direction:column;background:var(--bg);}
+.auth-shell{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px;}
+.auth-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:40px 36px;
+  width:100%;max-width:420px;
+}
+.auth-logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:28px;}
+.auth-logo-icon{font-size:2rem;}
+.auth-logo-text{font-size:1.4rem;font-weight:800;color:var(--text);}
+.auth-logo-accent{color:var(--orange);}
+.auth-title{font-size:1.2rem;font-weight:700;text-align:center;margin-bottom:6px;}
+.auth-sub{font-size:.85rem;color:var(--muted);text-align:center;margin-bottom:28px;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:.8rem;font-weight:500;color:var(--muted);margin-bottom:6px;}
+.form-input{
+  width:100%;background:var(--bg);border:1px solid var(--border);
+  color:var(--text);border-radius:var(--radius);
+  padding:10px 14px;font-size:.9rem;transition:border-color .15s;
+}
+.form-input:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,161,22,.12);}
+.btn-auth{
+  width:100%;background:var(--orange);color:#1A1A1A;
+  border:none;border-radius:var(--radius);
+  padding:11px;font-size:.95rem;font-weight:700;
+  cursor:pointer;transition:all .2s;margin-top:4px;
+}
+.btn-auth:hover{background:#FFB84D;transform:translateY(-1px);}
+.btn-auth:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.auth-footer{text-align:center;margin-top:20px;font-size:.85rem;color:var(--muted);}
+.auth-footer a{color:var(--orange);text-decoration:none;font-weight:500;}
+.auth-footer a:hover{text-decoration:underline;}
+.error-msg{
+  background:rgba(255,55,95,.1);border:1px solid rgba(255,55,95,.2);
+  color:#FF375F;border-radius:var(--radius);
+  padding:10px 14px;font-size:.82rem;margin-bottom:16px;display:none;
+}
+.divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--faint);font-size:.78rem;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-logo" href="/">🧠 <span>AlgoSensei</span></a>
+  <div class="nav-right">
+    <a href="/signup" class="btn btn-primary btn-sm">Create account</a>
+  </div>
+</nav>
+
+<div class="auth-shell">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span class="auth-logo-icon">🧠</span>
+      <span class="auth-logo-text">Algo<span class="auth-logo-accent">Sensei</span></span>
+    </div>
+    <h1 class="auth-title">Welcome back</h1>
+    <p class="auth-sub">Sign in to track your DSA progress</p>
+
+    <div class="error-msg" id="error-msg"></div>
+
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" type="email" id="email" placeholder="you@example.com" autocomplete="email"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" type="password" id="password" placeholder="Your password"
+        autocomplete="current-password" onkeydown="if(event.key==='Enter')login()"/>
+    </div>
+
+    <button class="btn-auth" id="login-btn" onclick="login()">Sign in</button>
+
+    <div class="divider">or</div>
+
+    <button class="btn-auth" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);"
+      onclick="guestMode()">Continue as guest</button>
+
+    <div class="auth-footer">
+      Don't have an account? <a href="/signup">Sign up free</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// Auto-redirect if already logged in
+const token = localStorage.getItem('as_token');
+if (token) window.location.href = '/tutor';
+
+async function login() {
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const errEl    = document.getElementById('error-msg');
+  const btn      = document.getElementById('login-btn');
+
+  errEl.style.display = 'none';
+  if (!email || !password) { showError('Please fill in all fields'); return; }
+
+  btn.disabled = true; btn.textContent = 'Signing in...';
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email, password})
+    });
+    const data = await res.json();
+    if (!res.ok) { showError(data.detail || 'Login failed'); return; }
+    localStorage.setItem('as_token', data.token);
+    localStorage.setItem('as_user', JSON.stringify({username: data.username, email: data.email}));
+    window.location.href = '/tutor';
+  } catch(e) {
+    showError('Connection error — is the server running?');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign in';
+  }
+}
+
+function guestMode() {
+  localStorage.removeItem('as_token');
+  localStorage.removeItem('as_user');
+  window.location.href = '/tutor';
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg; el.style.display = 'block';
+}
+</script>
+</body>
+</html>

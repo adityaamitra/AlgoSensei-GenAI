@@ -16,8 +16,18 @@ from typing import Optional
 
 app = FastAPI(title="AlgoSensei API")
 
+# ── Auth & Progress ──────────────────────────────────────────
+from auth.routes import router as auth_router
+app.include_router(auth_router)
+
 app.add_middleware(CORSMiddleware,
     allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+# ── Auth ─────────────────────────────────────────────────────
+from auth.database import init_db
+from auth.routes import router as auth_router
+init_db()
+app.include_router(auth_router)
 
 # ── Lazy engine singleton ────────────────────────────────────
 _engine = None
@@ -174,6 +184,26 @@ def reset():
 
 # ── Static files & pages ─────────────────────────────────────
 static_dir = Path(__file__).parent / "static"
+
+@app.get("/login")
+def login_page():
+    f = static_dir / "login.html"
+    return FileResponse(str(f), media_type="text/html")
+
+@app.get("/login")
+def login_page():
+    f = static_dir / "login.html"
+    return FileResponse(str(f), media_type="text/html")
+
+@app.get("/signup")
+def signup_page():
+    f = static_dir / "signup.html"
+    return FileResponse(str(f), media_type="text/html")
+
+@app.get("/dashboard")
+def dashboard_page():
+    f = static_dir / "dashboard.html"
+    return FileResponse(str(f), media_type="text/html")
 
 @app.get("/")
 def root():
