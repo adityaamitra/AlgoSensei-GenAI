@@ -1,44 +1,48 @@
-# AlgoSensei — Adaptive DSA Tutor
+# 🧠 AlgoSensei — Adaptive DSA Tutor
 
 **Stop looking up answers. Start building intuition.**
 
-AlgoSensei gives you calibrated Socratic hints for Blind 75 LeetCode problems — guiding you toward the insight without handing you the answer. Three hint levels, a leakage gate that architecturally prevents solution reveals, and a knowledge base grounded in CLRS + MIT OCW.
+AlgoSensei gives you calibrated Socratic hints for 175+ DSA problems — guiding you toward the insight without handing you the answer. The leakage gate architecturally prevents direct answer reveals, even if you ask directly.
 
-🚀 **[Try the live demo](https://huggingface.co/spaces/adityaamitra/AlgoSensei)** · 🌐 **[Project website](https://adityaamitra.github.io/AlgoSensei-GenAI/)** · 📄 **[Technical report](AlgoSensei_Technical_Report.pdf)**
+🚀 **[Try Live Demo](https://adityaamitra-algosensei.hf.space)** · 🌐 **[Website](https://adityaamitra.github.io/AlgoSensei-GenAI/)** · 📄 **[Technical Report](AlgoSensei_Technical_Report.pdf)**
 
 ---
 
-## What it does
+## The Problem
 
-You're stuck on a LeetCode problem. Every other tool either solves it for you or gives vague encouragement. AlgoSensei does neither — it asks you questions that guide you toward the insight.
+You're stuck on a LeetCode problem at 11 PM. You have two options: keep suffering, or look up the solution, skim it, tell yourself you understand it, and move on.
 
-**Three modes:**
+Every DSA prep tool either solves the problem for you or gives vague encouragement. AlgoSensei does neither — it gives you the minimum hint needed to make progress. And it's architecturally enforced: the system cannot give a direct answer even if you explicitly ask for one.
 
-| Mode | How to use |
+---
+
+## Features
+
+| Feature | Description |
 |---|---|
-| **Get a Hint** | Enter a problem title, pick a pattern, click Hint 1 / 2 / 3 |
-| **Explain a Concept** | Type any DSA concept — get a retrieval-grounded explanation with analogies |
-| **Upload Screenshot** | Drop a LeetCode screenshot — OCR detects the problem, gives a first hint automatically |
-
-**Three hint levels:**
-- Level 1 — Direction only. Points toward what to examine, nothing more.
-- Level 2 — Structure. Guides toward the type of operation needed.
-- Level 3 — Near-solution. Describes the abstract approach without naming the algorithm or writing code.
+| 💡 **3-Level Hints** | Direction → Structure → Near-solution. Never names the algorithm. |
+| 💻 **Code Analysis** | Paste your attempt. Get a targeted hint about your specific bottleneck. |
+| 📸 **Screenshot → Session** | Upload a LeetCode screenshot. Auto-detects problem, starts full tutoring session. |
+| 📖 **Concept Explainer** | RAG-grounded explanations with real-world analogies and knowledge citations. |
+| 🔊 **Audio Output** | Listen button on every hint via Web Speech API. |
+| 👤 **User Accounts** | Track progress across 175+ problems with a personal dashboard. |
+| 🛡️ **Leakage Gate** | Two-stage safety check (regex + semantic) on every response. Verified 0% leakage. |
+| 🧠 **Context Memory** | Each hint builds on previous ones — progressively guides without repeating. |
 
 ---
 
-## Generative AI components
+## Generative AI Components
 
 | Component | Technology | What it does |
 |---|---|---|
-| RAG | Qdrant Cloud + all-MiniLM-L6-v2 | 49 knowledge chunks, 14 DSA patterns, retrieved per query |
-| Prompt Engineering | OpenRouter LLM | 3 system prompts + leakage gate + calibrated hint levels |
-| Multimodal | OCR (pytesseract) + Web Speech API | Screenshot → text → pattern + 🔊 Listen button |
-| Synthetic Data | Auto-generated JSONL | 110 evaluation pairs across 22 problems × 5 interaction types |
+| **RAG** | Qdrant Cloud + all-MiniLM-L6-v2 | 49 KB chunks across 14 DSA patterns, retrieved per query |
+| **Prompt Engineering** | OpenAI / OpenRouter | 3 system prompts + leakage gate + calibrated hint levels |
+| **Multimodal** | pytesseract + Web Speech API | Screenshot → OCR → pattern detection + audio output |
+| **Synthetic Data** | Auto-generated JSONL | 110 evaluation pairs across 22 problems × 5 interaction types |
 
 ---
 
-## Quick start
+## Quick Start
 
 ```bash
 # 1. Clone
@@ -48,9 +52,8 @@ cd AlgoSensei-GenAI/algosensei_genai
 # 2. Install
 pip install -r requirements.txt
 
-# 3. Install Tesseract OCR (for screenshot tab)
-brew install tesseract          # macOS
-# sudo apt install tesseract-ocr  # Ubuntu
+# 3. Install Tesseract OCR (macOS)
+brew install tesseract
 
 # 4. Add API keys
 cp .env.example .env
@@ -59,134 +62,138 @@ cp .env.example .env
 # 5. Build knowledge base (one-time, ~2 min)
 python scripts/setup_qdrant.py
 
-# 6. Generate evaluation data (one-time)
-python scripts/generate_synthetic.py
-
-# 7. Launch
-streamlit run app.py
+# 6. Launch
+uvicorn main:app --reload --port 8000
 ```
 
-**Free API keys:**
-- OpenRouter: [openrouter.ai/keys](https://openrouter.ai/keys) — use any free model (e.g. `nvidia/llama-3.1-nemotron-ultra-253b-v1:free`)
-- Qdrant Cloud: [cloud.qdrant.io](https://cloud.qdrant.io) — free tier, 1GB
+Open:
+- `http://localhost:8000` — landing page
+- `http://localhost:8000/tutor` — tutor app
+- `http://localhost:8000/signup` — create account
+- `http://localhost:8000/dashboard` — progress dashboard
 
 ---
 
-## Project structure
+## Environment Variables
+
+```bash
+# Required
+OPENROUTER_API_KEY=sk-or-v1-your-key
+QDRANT_URL=https://your-cluster.qdrant.io
+QDRANT_API_KEY=your-key
+JWT_SECRET=any-random-string
+
+# Optional — use OpenAI instead of OpenRouter
+LLM_PROVIDER=openai
+OPENAI_API_KEY=sk-your-key
+OPENAI_MODEL=gpt-4o-mini
+
+# Optional — override default model
+OPENROUTER_MODEL=nvidia/llama-3.1-nemotron-ultra-253b-v1:free
+```
+
+---
+
+## Project Structure
 
 ```
 algosensei_genai/
-├── app.py                        ← Streamlit app (Home, Tutor, Metrics, How it works)
-├── config.py                     ← All config — reads from .env locally, Secrets on HF
+├── main.py                    ← FastAPI backend
+├── config.py                  ← Configuration
 ├── requirements.txt
-├── .env.example
+├── Dockerfile                 ← HF Spaces Docker deployment
+│
+├── static/                    ← Frontend
+│   ├── index.html             ← Landing page
+│   ├── tutor.html             ← Tutor app
+│   ├── login.html             ← Sign in
+│   ├── signup.html            ← Create account
+│   ├── dashboard.html         ← Progress dashboard
+│   └── style.css              ← Shared styles
+│
+├── auth/                      ← Authentication
+│   ├── database.py            ← SQLite (users, progress, hint history)
+│   ├── security.py            ← PBKDF2 password hashing + JWT tokens
+│   └── routes.py              ← /api/auth/* endpoints
+│
+├── engine/                    ← AI Engine
+│   ├── gemini_client.py       ← LLM client (OpenAI/OpenRouter)
+│   ├── leakage_gate.py        ← Two-stage safety checker
+│   └── tutor.py               ← TutoringSession + AlgoSenseiEngine
+│
+├── rag/                       ← Retrieval-Augmented Generation
+│   ├── embedder.py            ← all-MiniLM-L6-v2 (local)
+│   ├── vector_store.py        ← Qdrant REST API (no grpcio)
+│   └── retriever.py           ← Retrieval + faithfulness scoring
 │
 ├── knowledge/
-│   └── blind75_kb.py             ← 49 DSA knowledge chunks, 14 patterns
-│
-├── rag/
-│   ├── embedder.py               ← all-MiniLM-L6-v2, pre-computed + cached
-│   ├── vector_store.py           ← Qdrant Cloud interface
-│   └── retriever.py              ← Retrieval + faithfulness scoring
+│   ├── blind75_kb.py          ← 49 DSA knowledge chunks
+│   └── problem_db.py          ← 175 problems (Blind75 + NeetCode150 + Grind169)
 │
 ├── prompts/
-│   └── templates.py              ← All prompt templates (3 modes + leakage gate)
-│
-├── engine/
-│   ├── gemini_client.py          ← OpenRouter HTTP client (no SDK needed)
-│   ├── leakage_gate.py           ← Two-stage safety checker (regex + semantic)
-│   └── tutor.py                  ← Core engine: TutoringSession + AlgoSenseiEngine
-│
-├── multimodal/
-│   └── audio.py                  ← Web Speech API 🔊 Listen button
-│
-├── synthetic/
-│   ├── generate.py               ← 110 evaluation pair generator
-│   └── data/
-│       ├── eval_pairs.jsonl      ← Generated evaluation dataset
-│       └── stats.json
-│
-├── evaluation/
-│   └── evaluator.py              ← 4 metrics: Recall @4, Leakage, Faithfulness, Accuracy
-│
-├── scripts/
-│   ├── setup_qdrant.py           ← ONE-TIME: embed KB + upload to Qdrant
-│   ├── generate_synthetic.py     ← Generate evaluation data
-│   └── run_evaluation.py         ← Run full evaluation suite
-│
-├── tests/
-│   └── test_all.py               ← 24 unit tests
+│   └── templates.py           ← All LLM prompt templates
 │
 └── web/
-    └── index.html                ← GitHub Pages landing page
+    └── index.html             ← GitHub Pages landing page
 ```
 
 ---
 
-## Evaluation
+## Evaluation Metrics
 
+| Metric | Target | Description |
+|---|---|---|
+| Retrieval Recall @4 | >90% | Correct concept in top 4 retrieved chunks |
+| Hint Leakage Rate | <5% | Hints with direct solution reveals |
+| Faithfulness Score | >95% | Hints grounded in retrieved context |
+| Directional Accuracy | >85% | Hints pointing toward correct DSA pattern |
+
+Run the evaluation suite:
 ```bash
 python scripts/run_evaluation.py
 ```
 
-| Metric | Target | What it measures |
+---
+
+## Tech Stack — Total Cost: $0
+
+| Service | Usage | Cost |
 |---|---|---|
-| Retrieval Recall @4 | >90% | Correct concept in top 4 retrieved chunks |
-| Hint Leakage Rate | <5% | Hints with direct solution steps |
-| Faithfulness Score | >95% | Hint claims grounded in retrieved context |
-| Directional Accuracy | >85% | Hints pointing toward correct DSA pattern |
+| OpenRouter | LLM inference (free models) | $0 |
+| Qdrant Cloud | Vector DB (free tier 1GB) | $0 |
+| all-MiniLM-L6-v2 | Embeddings (local inference) | $0 |
+| pytesseract | OCR (local) | $0 |
+| Web Speech API | Audio output (browser-native) | $0 |
+| Hugging Face Spaces | Hosting | $0 |
+| GitHub Pages | Landing page | $0 |
 
 ---
 
-## How the RAG pipeline works
+## Problem Coverage
 
-```
-Student question
-      ↓
-all-MiniLM-L6-v2 embeds query (local, zero cost)
-      ↓
-Qdrant Cloud cosine similarity search → top-4 chunks
-      ↓
-Chunks injected into system prompt as grounding context
-      ↓
-OpenRouter LLM generates calibrated Socratic hint
-      ↓
-Leakage gate (regex + semantic) validates output
-      ↓
-Approved hint + 🔊 Listen button
-```
+175 problems across 14 DSA patterns:
+
+`Arrays & Hashing` · `Two Pointers` · `Sliding Window` · `Stack` · `Binary Search` · `Linked List` · `Trees` · `Tries` · `Heap/PQ` · `Backtracking` · `Graphs` · `DP 1D` · `DP 2D` · `Greedy`
+
+Includes all **Blind 75**, **NeetCode 150**, and **Grind 169** problems with company tags (Google, Amazon, Meta, Microsoft, Apple).
 
 ---
 
 ## Deploying to Hugging Face Spaces
 
-1. Create a new Streamlit Space at [huggingface.co](https://huggingface.co)
-2. Upload this entire folder
-3. Rename `README_HF.md` → `README.md`
-4. Add Secrets in Space Settings:
-   - `OPENROUTER_API_KEY`
-   - `QDRANT_URL`
-   - `QDRANT_API_KEY`
-   - `OPENROUTER_MODEL` (optional — defaults to Nemotron)
-5. Push — auto-deploys in ~3 minutes
+1. Create a new Space with **Docker SDK**
+2. Upload all project files maintaining folder structure
+3. Add Secrets: `OPENROUTER_API_KEY`, `QDRANT_URL`, `QDRANT_API_KEY`, `JWT_SECRET`
+4. The space builds and runs automatically on port 7860
 
----
-
-## Tech stack — Total cost: $0
-
-| Service | Usage |
-|---|---|
-| OpenRouter | LLM inference — free models available |
-| Qdrant Cloud | Vector DB — free tier, 1GB |
-| all-MiniLM-L6-v2 | Embeddings — local inference, no API |
-| pytesseract | OCR — local, no API |
-| Web Speech API | Audio output — browser-native |
-| Streamlit | UI framework |
-| Hugging Face Spaces | Hosting — free |
-| GitHub Pages | Landing page — free |
+Live at: **https://adityaamitra-algosensei.hf.space**
 
 ---
 
 ## Author
 
-Aditya Mitra — [GitHub](https://github.com/adityaamitra)
+**Aditya Mitra**
+
+
+[![GitHub](https://img.shields.io/badge/GitHub-adityaamitra-black?logo=github)](https://github.com/adityaamitra)
+[![HF Space](https://img.shields.io/badge/🤗-Live%20Demo-yellow)](https://adityaamitra-algosensei.hf.space)
