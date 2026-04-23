@@ -1,199 +1,222 @@
-# 🧠 AlgoSensei — Adaptive DSA Tutor
+# 🧠 AlgoSensei
 
-**Stop looking up answers. Start building intuition.**
+**The DSA tutor that guides you — without giving away the answer.**
 
-AlgoSensei gives you calibrated Socratic hints for 175+ DSA problems — guiding you toward the insight without handing you the answer. The leakage gate architecturally prevents direct answer reveals, even if you ask directly.
+AlgoSensei gives you calibrated Socratic hints for 175+ LeetCode problems. Instead of handing you the solution, it asks you the right questions until you arrive at the insight yourself. The leakage gate makes this architecturally enforced — the system cannot reveal the answer even if you ask directly.
 
-🚀 **[Try Live Demo](https://adityaamitra-algosensei.hf.space)** · 🌐 **[Website](https://adityaamitra.github.io/AlgoSensei-GenAI/)** · 📄 **[Technical Report](AlgoSensei_Technical_Report.pdf)**
+🚀 **[Try it free](https://adityaamitra-algosensei.hf.space)** · 🌐 **[Website](https://adityaamitra.github.io/AlgoSensei-GenAI/)**
 
 ---
 
-## The Problem
+## Why AlgoSensei
 
-You're stuck on a LeetCode problem at 11 PM. You have two options: keep suffering, or look up the solution, skim it, tell yourself you understand it, and move on.
+Every DSA prep tool either solves the problem for you or gives vague encouragement. ChatGPT hands you the answer. Editorials walk you through the solution. There's no middle ground — until now.
 
-Every DSA prep tool either solves the problem for you or gives vague encouragement. AlgoSensei does neither — it gives you the minimum hint needed to make progress. And it's architecturally enforced: the system cannot give a direct answer even if you explicitly ask for one.
+AlgoSensei lives in the gap between *"I'm stuck"* and *"I looked up the answer."* It gives you the minimum hint needed to make progress, and it's enforced at the system level — not just a prompt instruction.
 
 ---
 
 ## Features
 
-| Feature | Description |
-|---|---|
-| 💡 **3-Level Hints** | Direction → Structure → Near-solution. Never names the algorithm. |
-| 💻 **Code Analysis** | Paste your attempt. Get a targeted hint about your specific bottleneck. |
-| 📸 **Screenshot → Session** | Upload a LeetCode screenshot. Auto-detects problem, starts full tutoring session. |
-| 📖 **Concept Explainer** | RAG-grounded explanations with real-world analogies and knowledge citations. |
-| 🔊 **Audio Output** | Listen button on every hint via Web Speech API. |
-| 👤 **User Accounts** | Track progress across 175+ problems with a personal dashboard. |
-| 🛡️ **Leakage Gate** | Two-stage safety check (regex + semantic) on every response. Verified 0% leakage. |
-| 🧠 **Context Memory** | Each hint builds on previous ones — progressively guides without repeating. |
+**💡 Three-level hints**
+Direction → Structure → Near-solution. Each level gets one step closer without ever naming the algorithm or writing code. Every hint builds on the previous one.
+
+**💻 Code analysis**
+Paste your current attempt. AlgoSensei identifies exactly where your approach breaks down and asks one targeted question about it — not a generic observation, a question about your specific code.
+
+**📸 Screenshot to session**
+Upload any LeetCode problem screenshot. OCR reads the problem, detects the pattern, and starts a full tutoring session automatically.
+
+**📖 Concept explainer**
+Type any DSA concept. Get a grounded explanation with real-world analogies, complexity analysis, and a comprehension check — backed by a curated knowledge base.
+
+**🔊 Audio output**
+Every hint has a Listen button. Web Speech API reads it aloud so your eyes can stay on your code editor.
+
+**👤 Progress tracking**
+Create a free account. Track which problems you've solved, see your progress across 14 DSA patterns, and pick up where you left off.
+
+**🛡️ Leakage gate**
+Two-stage safety check on every response — regex for direct algorithm names, semantic check for subtle reveals. Verified 0% leakage rate across all hint levels.
 
 ---
 
-## Generative AI Components
+## Getting Started
 
-| Component | Technology | What it does |
-|---|---|---|
-| **RAG** | Qdrant Cloud + all-MiniLM-L6-v2 | 49 KB chunks across 14 DSA patterns, retrieved per query |
-| **Prompt Engineering** | OpenAI / OpenRouter | 3 system prompts + leakage gate + calibrated hint levels |
-| **Multimodal** | pytesseract + Web Speech API | Screenshot → OCR → pattern detection + audio output |
-| **Synthetic Data** | Auto-generated JSONL | 110 evaluation pairs across 22 problems × 5 interaction types |
+### Use the hosted version
 
----
+**[https://adityaamitra-algosensei.hf.space](https://adityaamitra-algosensei.hf.space)**
 
-## Quick Start
+No installation, no signup required. Create a free account to save progress.
+
+### Run locally
+
+**Prerequisites:** Python 3.11+, [Tesseract OCR](https://tesseract-ocr.github.io/tessdoc/Installation.html), free accounts at [OpenRouter](https://openrouter.ai/keys) and [Qdrant Cloud](https://cloud.qdrant.io)
 
 ```bash
-# 1. Clone
 git clone https://github.com/adityaamitra/AlgoSensei-GenAI
 cd AlgoSensei-GenAI/algosensei_genai
 
-# 2. Install
 pip install -r requirements.txt
 
-# 3. Install Tesseract OCR (macOS)
+# macOS
 brew install tesseract
 
-# 4. Add API keys
 cp .env.example .env
-# Fill in: OPENROUTER_API_KEY, QDRANT_URL, QDRANT_API_KEY
+# Edit .env with your API keys
 
-# 5. Build knowledge base (one-time, ~2 min)
+# One-time setup: builds the knowledge base in Qdrant (~2 min)
 python scripts/setup_qdrant.py
 
-# 6. Launch
 uvicorn main:app --reload --port 8000
 ```
 
-Open:
-- `http://localhost:8000` — landing page
-- `http://localhost:8000/tutor` — tutor app
-- `http://localhost:8000/signup` — create account
-- `http://localhost:8000/dashboard` — progress dashboard
+Open `http://localhost:8000`
 
 ---
 
-## Environment Variables
+## Configuration
 
 ```bash
-# Required
-OPENROUTER_API_KEY=sk-or-v1-your-key
-QDRANT_URL=https://your-cluster.qdrant.io
-QDRANT_API_KEY=your-key
-JWT_SECRET=any-random-string
+# .env
 
-# Optional — use OpenAI instead of OpenRouter
+# Required
+OPENROUTER_API_KEY=sk-or-v1-...     # openrouter.ai/keys
+QDRANT_URL=https://...              # cloud.qdrant.io
+QDRANT_API_KEY=...
+JWT_SECRET=any-long-random-string
+
+# Optional: use OpenAI instead of OpenRouter
 LLM_PROVIDER=openai
-OPENAI_API_KEY=sk-your-key
+OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-4o-mini
 
-# Optional — override default model
+# Optional: override the default model
 OPENROUTER_MODEL=nvidia/llama-3.1-nemotron-ultra-253b-v1:free
 ```
 
----
-
-## Project Structure
-
-```
-algosensei_genai/
-├── main.py                    ← FastAPI backend
-├── config.py                  ← Configuration
-├── requirements.txt
-├── Dockerfile                 ← HF Spaces Docker deployment
-│
-├── static/                    ← Frontend
-│   ├── index.html             ← Landing page
-│   ├── tutor.html             ← Tutor app
-│   ├── login.html             ← Sign in
-│   ├── signup.html            ← Create account
-│   ├── dashboard.html         ← Progress dashboard
-│   └── style.css              ← Shared styles
-│
-├── auth/                      ← Authentication
-│   ├── database.py            ← SQLite (users, progress, hint history)
-│   ├── security.py            ← PBKDF2 password hashing + JWT tokens
-│   └── routes.py              ← /api/auth/* endpoints
-│
-├── engine/                    ← AI Engine
-│   ├── gemini_client.py       ← LLM client (OpenAI/OpenRouter)
-│   ├── leakage_gate.py        ← Two-stage safety checker
-│   └── tutor.py               ← TutoringSession + AlgoSenseiEngine
-│
-├── rag/                       ← Retrieval-Augmented Generation
-│   ├── embedder.py            ← all-MiniLM-L6-v2 (local)
-│   ├── vector_store.py        ← Qdrant REST API (no grpcio)
-│   └── retriever.py           ← Retrieval + faithfulness scoring
-│
-├── knowledge/
-│   ├── blind75_kb.py          ← 49 DSA knowledge chunks
-│   └── problem_db.py          ← 175 problems (Blind75 + NeetCode150 + Grind169)
-│
-├── prompts/
-│   └── templates.py           ← All LLM prompt templates
-│
-└── web/
-    └── index.html             ← GitHub Pages landing page
-```
-
----
-
-## Evaluation Metrics
-
-| Metric | Target | Description |
-|---|---|---|
-| Retrieval Recall @4 | >90% | Correct concept in top 4 retrieved chunks |
-| Hint Leakage Rate | <5% | Hints with direct solution reveals |
-| Faithfulness Score | >95% | Hints grounded in retrieved context |
-| Directional Accuracy | >85% | Hints pointing toward correct DSA pattern |
-
-Run the evaluation suite:
-```bash
-python scripts/run_evaluation.py
-```
-
----
-
-## Tech Stack — Total Cost: $0
-
-| Service | Usage | Cost |
-|---|---|---|
-| OpenRouter | LLM inference (free models) | $0 |
-| Qdrant Cloud | Vector DB (free tier 1GB) | $0 |
-| all-MiniLM-L6-v2 | Embeddings (local inference) | $0 |
-| pytesseract | OCR (local) | $0 |
-| Web Speech API | Audio output (browser-native) | $0 |
-| Hugging Face Spaces | Hosting | $0 |
-| GitHub Pages | Landing page | $0 |
+**Total cost to run: $0** — OpenRouter free tier, Qdrant free tier (1GB), local embeddings, local OCR.
 
 ---
 
 ## Problem Coverage
 
-175 problems across 14 DSA patterns:
+**175 problems** across **14 DSA patterns** — full Blind 75, NeetCode 150, and Grind 169 coverage with difficulty ratings and company tags.
 
-`Arrays & Hashing` · `Two Pointers` · `Sliding Window` · `Stack` · `Binary Search` · `Linked List` · `Trees` · `Tries` · `Heap/PQ` · `Backtracking` · `Graphs` · `DP 1D` · `DP 2D` · `Greedy`
+| Pattern | Problems |
+|---|---|
+| Arrays & Hashing | 21 |
+| Trees | 17 |
+| Graphs | 17 |
+| Dynamic Programming 1D | 16 |
+| Linked List | 14 |
+| Dynamic Programming 2D | 13 |
+| Backtracking | 11 |
+| Sliding Window | 9 |
+| Heap / Priority Queue | 9 |
+| Greedy | 9 |
+| Stack | 10 |
+| Binary Search | 8 |
+| Two Pointers | 7 |
+| Tries | 5 |
 
-Includes all **Blind 75**, **NeetCode 150**, and **Grind 169** problems with company tags (Google, Amazon, Meta, Microsoft, Apple).
+Company tags included: Google, Amazon, Meta, Microsoft, Apple, Bloomberg, LinkedIn, Uber.
 
 ---
 
-## Deploying to Hugging Face Spaces
+## How it works
 
-1. Create a new Space with **Docker SDK**
-2. Upload all project files maintaining folder structure
-3. Add Secrets: `OPENROUTER_API_KEY`, `QDRANT_URL`, `QDRANT_API_KEY`, `JWT_SECRET`
-4. The space builds and runs automatically on port 7860
-
-Live at: **https://adityaamitra-algosensei.hf.space**
+```
+Your question / screenshot
+        ↓
+Mode detection (hint / explain / code analysis / screenshot)
+        ↓
+Query embedded locally (all-MiniLM-L6-v2, zero API cost)
+        ↓
+Qdrant Cloud returns top-4 relevant knowledge chunks
+        ↓
+LLM generates Socratic hint grounded in retrieved context
+        ↓
+Leakage gate: regex + semantic check
+Failed? → regenerate (up to 3×)
+        ↓
+Approved hint + 🔊 Listen button
+```
 
 ---
 
-## Author
+## Architecture
 
-**Aditya Mitra**
+```
+algosensei_genai/
+├── main.py                    ← FastAPI backend
+├── static/                    ← Frontend (HTML/CSS/JS)
+│   ├── index.html             ← Landing page
+│   ├── tutor.html             ← Main tutor app
+│   ├── login.html / signup.html / dashboard.html
+│   └── style.css
+├── auth/                      ← Authentication
+│   ├── database.py            ← SQLite: users, progress, hint history
+│   ├── security.py            ← PBKDF2 hashing + JWT tokens
+│   └── routes.py              ← /api/auth/* endpoints
+├── engine/
+│   ├── gemini_client.py       ← LLM client (OpenAI / OpenRouter)
+│   ├── leakage_gate.py        ← Two-stage safety checker
+│   └── tutor.py               ← Core tutoring engine
+├── rag/
+│   ├── embedder.py            ← Local sentence embeddings
+│   ├── vector_store.py        ← Qdrant REST API (no grpcio)
+│   └── retriever.py           ← Retrieval + faithfulness scoring
+├── knowledge/
+│   ├── blind75_kb.py          ← 49 curated DSA knowledge chunks
+│   └── problem_db.py          ← 175 problems with metadata
+└── prompts/
+    └── templates.py           ← All LLM prompt templates
+```
 
+---
 
-[![GitHub](https://img.shields.io/badge/GitHub-adityaamitra-black?logo=github)](https://github.com/adityaamitra)
-[![HF Space](https://img.shields.io/badge/🤗-Live%20Demo-yellow)](https://adityaamitra-algosensei.hf.space)
+## API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/hint` | Generate Socratic hint |
+| `POST` | `/api/explain` | Explain a DSA concept |
+| `POST` | `/api/analyze-code` | Analyze code attempt |
+| `POST` | `/api/screenshot` | Process screenshot |
+| `GET` | `/api/problems` | List problems (filterable) |
+| `POST` | `/api/auth/signup` | Create account |
+| `POST` | `/api/auth/login` | Sign in |
+| `GET` | `/api/auth/progress` | Get user progress |
+| `POST` | `/api/auth/progress` | Save progress |
+
+---
+
+## Tech Stack
+
+| Component | Technology |
+|---|---|
+| Backend | FastAPI + uvicorn |
+| Frontend | Vanilla HTML / CSS / JS |
+| LLM | OpenRouter (free) or OpenAI |
+| Vector DB | Qdrant Cloud |
+| Embeddings | all-MiniLM-L6-v2 (local) |
+| OCR | pytesseract (local) |
+| Auth | SQLite + JWT (no external service) |
+| Hosting | Hugging Face Spaces (Docker) |
+
+---
+
+## Contributing
+
+Issues and pull requests are welcome. If you find a hint that reveals the answer directly, please open an issue — that's a leakage gate miss and should be fixed.
+
+---
+
+## License
+
+MIT — free to use, modify, and deploy.
+
+---
+
+Built by [Aditya Mitra](https://github.com/adityaamitra)
