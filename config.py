@@ -10,29 +10,49 @@ try:
 except ImportError:
     pass
 
-# ── OpenRouter (replaces Gemini direct API) ───────────────────
-OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+# ── LLM Provider ──────────────────────────────────────────────
+# Set LLM_PROVIDER="openai" in .env to use OpenAI (gpt-4o-mini)
+# Leave unset or "openrouter" to use free OpenRouter models
+LLM_PROVIDER = os.environ.get("LLM_PROVIDER", "openrouter")
 
-# Confirmed working free models on OpenRouter:
-#   "qwen/qwen-2.5-7b-instruct:free"       ← default, good for coding
-#   "meta-llama/llama-3.1-8b-instruct:free"
-#   "mistralai/mistral-7b-instruct:free"
-#   "google/gemma-2-9b-it:free"
+# ── OpenAI ────────────────────────────────────────────────────
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+OPENAI_MODEL   = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+
+# ── OpenRouter (free fallback) ────────────────────────────────
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 OPENROUTER_MODEL   = os.environ.get(
     "OPENROUTER_MODEL",
-    "qwen/qwen-2.5-7b-instruct:free"
+    "nvidia/llama-3.1-nemotron-ultra-253b-v1:free"
 )
-
-# Separate vision model for screenshot analysis (must support image input)
-# meta-llama/llama-3.2-11b-vision-instruct:free supports images
 OPENROUTER_VISION_MODEL = os.environ.get(
     "OPENROUTER_VISION_MODEL",
     "qwen/qwen2-vl-7b-instruct:free"
 )
 
-# Keep these for backwards compatibility
+# ── Active config (auto-resolved from provider) ───────────────
+if LLM_PROVIDER == "openai" and OPENAI_API_KEY:
+    ACTIVE_API_KEY  = OPENAI_API_KEY
+    ACTIVE_MODEL    = OPENAI_MODEL
+    ACTIVE_BASE_URL = "https://api.openai.com/v1"
+    ACTIVE_HEADERS  = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json",
+    }
+else:
+    ACTIVE_API_KEY  = OPENROUTER_API_KEY
+    ACTIVE_MODEL    = OPENROUTER_MODEL
+    ACTIVE_BASE_URL = "https://openrouter.ai/api/v1"
+    ACTIVE_HEADERS  = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "HTTP-Referer": "https://github.com/adityaamitra/AlgoSensei",
+        "X-Title": "AlgoSensei",
+        "Content-Type": "application/json",
+    }
+
+# Keep for backwards compatibility
 GEMINI_API_KEY      = os.environ.get("GEMINI_API_KEY", "")
-GEMINI_MODEL        = OPENROUTER_MODEL
+GEMINI_MODEL        = ACTIVE_MODEL
 GEMINI_VISION_MODEL = OPENROUTER_VISION_MODEL
 
 # ── Qdrant ────────────────────────────────────────────────────
