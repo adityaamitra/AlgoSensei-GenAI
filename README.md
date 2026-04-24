@@ -4,7 +4,7 @@
 
 AlgoSensei gives you calibrated Socratic hints for 175+ LeetCode problems. Instead of handing you the solution, it asks you the right questions until you arrive at the insight yourself. The leakage gate makes this architecturally enforced — the system cannot reveal the answer even if you ask directly.
 
-🚀 **[Try it free](https://adityaamitra-algosensei.hf.space)** · 🌐 **[Website](https://adityaamitra.github.io/AlgoSensei-GenAI/)**
+🚀 **[Try it free](https://adityaamitra-algosensei.hf.space)** · 🌐 **[Website](https://adityaamitra.github.io/AlgoSensei-GenAI/)** · 🌐 **[Demo Video](https://youtu.be/DngHH4ujmcY)**
 
 ---
 
